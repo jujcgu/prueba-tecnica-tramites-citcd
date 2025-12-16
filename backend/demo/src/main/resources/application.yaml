@@ -10,3 +10,6 @@ spring:
   config:
     import:
     - "optional:classpath:jwt.yaml"
+  mvc:
+    problemdetails:
+      enabled: true
