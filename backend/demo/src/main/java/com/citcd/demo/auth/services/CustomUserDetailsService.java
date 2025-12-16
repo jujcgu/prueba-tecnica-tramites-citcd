@@ -29,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return User
                 .withUsername(u.getEmail())
                 .password(u.getPasswordHash())
-                .authorities(List.of(new SimpleGrantedAuthority(u.getRol())))
+                .authorities(List.of(new SimpleGrantedAuthority(u.getRol().toString())))
                 .disabled(!u.esActivo())
                 .build();
     }

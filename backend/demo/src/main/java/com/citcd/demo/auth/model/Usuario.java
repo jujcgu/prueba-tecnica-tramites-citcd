@@ -2,9 +2,13 @@ package com.citcd.demo.auth.model;
 
 import java.time.LocalDate;
 
+import com.citcd.demo.auth.model.enums.RolUsuario;
+
 import jakarta.persistence.CheckConstraint;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,7 +18,7 @@ import lombok.Data;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "usuario_email_key", columnNames = {
-        "email" }), check = @CheckConstraint(name = "rol_nombre_chk", constraint = "(rol::text = ANY (ARRAY['ROLE_ESTUDIANTE'::character varying, 'ROLE_DOCENTE'::character varying, 'ROLE_ADMINISTRATIVO'::character varying]::text[])"))
+        "email" }), check = @CheckConstraint(name = "rol_nombre_chk", constraint = "rol::text = ANY (ARRAY['ROLE_ESTUDIANTE'::character varying, 'ROLE_DOCENTE'::character varying, 'ROLE_ADMINISTRATIVO'::character varying]::text[])"))
 @Data
 public class Usuario {
 
@@ -29,7 +33,8 @@ public class Usuario {
     private String passwordHash;
 
     @Column(nullable = false)
-    private String rol;
+    @Enumerated(EnumType.STRING)
+    private RolUsuario rol;
 
     @Column(nullable = false)
     private Boolean esActivo;
