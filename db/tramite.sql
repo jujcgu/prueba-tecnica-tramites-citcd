@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.tramite
     numero_radicado bigint,
     finalizado_en date,
     creado_en date NOT NULL,
-    actualizado_en date NOT NULL,
+    actualizado_en date,
     CONSTRAINT tramite_pkey PRIMARY KEY (id),
     CONSTRAINT tramite_numero_radicado_key UNIQUE (numero_radicado),
     CONSTRAINT tramite_asignado_a_fkey FOREIGN KEY (asignado_a)

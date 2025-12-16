@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.tipo_tramite
     descripcion character varying COLLATE pg_catalog."default",
     es_activo boolean NOT NULL,
     creado_en date NOT NULL,
-    actualizado_en date NOT NULL,
+    actualizado_en date,
     CONSTRAINT tipo_tramite_pkey PRIMARY KEY (id),
     CONSTRAINT tipo_tramite_codigo_key UNIQUE (codigo)
 )
