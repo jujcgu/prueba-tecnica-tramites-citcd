@@ -26,11 +26,11 @@ public class Adjunto {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "adjunto_tramite_id_fkey"))
+    @JoinColumn(name = "tramite_id", nullable = false, foreignKey = @ForeignKey(name = "adjunto_tramite_id_fkey"))
     private Tramite tramiteId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "adjunto_tipo_documento_id_fkey"))
+    @JoinColumn(name = "tipo_documento_id", nullable = false, foreignKey = @ForeignKey(name = "adjunto_tipo_documento_id_fkey"))
     private TipoDocumento tipoDocumentoId;
 
     private String nombreArchivo;
@@ -38,7 +38,7 @@ public class Adjunto {
     private String url;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "adjunto_subido_por_fkey"))
+    @JoinColumn(name = "subido_por", nullable = false, foreignKey = @ForeignKey(name = "adjunto_subido_por_fkey"))
     private Usuario subidoPor;
 
     @Column(nullable = false)
