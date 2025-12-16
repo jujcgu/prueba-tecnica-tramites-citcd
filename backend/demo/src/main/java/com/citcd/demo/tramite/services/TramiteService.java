@@ -24,6 +24,7 @@ import com.citcd.demo.catalogos.tipotramite.models.TipoTramite;
 import com.citcd.demo.catalogos.tipotramite.models.TipoTramiteDocumento;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteDocumentoRepository;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteRepository;
+import com.citcd.demo.seguimiento.dtos.SeguimientoResponseDTO;
 import com.citcd.demo.seguimiento.model.Seguimiento;
 import com.citcd.demo.seguimiento.model.enums.TipoEvento;
 import com.citcd.demo.seguimiento.repositories.SeguimientoRepository;
@@ -31,6 +32,7 @@ import com.citcd.demo.tramite.dtos.ActualizarEstadoTramiteDTO;
 import com.citcd.demo.tramite.dtos.AgregarComentarioTramiteDTO;
 import com.citcd.demo.tramite.dtos.AsignarFuncionarioTramiteDTO;
 import com.citcd.demo.tramite.dtos.TramiteRequestDTO;
+import com.citcd.demo.tramite.dtos.TramiteResponseDTO;
 import com.citcd.demo.tramite.models.Tramite;
 import com.citcd.demo.tramite.models.enums.EstadoTramite;
 import com.citcd.demo.tramite.repositories.TramiteRepository;
@@ -142,23 +144,24 @@ public class TramiteService {
 				.orElseThrow(
 						() -> new EntityNotFoundException("Funcionario no encontrado con id " + dto.funcionarioId()));
 
-		Tramite tramite = tramiteRepository.findById(requestedId).orElseThrow(
-				() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
+		Tramite tramite = tramiteRepository.findById(requestedId)
+				.orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 
 		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
 				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
-
-		tramite.setAsignadoA(usuario);
-		Tramite updatedTramite = tramiteRepository.save(tramite);
 
 		Seguimiento newSeguimientoRequest = new Seguimiento();
 		newSeguimientoRequest.setTramiteId(tramite);
 		newSeguimientoRequest.setCreadoPor(creadoPor);
 		newSeguimientoRequest.setTipoEvento(TipoEvento.ASIGNACION);
 		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
+
+		tramite.setAsignadoA(usuario);
+		tramite.setActualizadoEn(LocalDate.now());
+		Tramite updatedTramite = tramiteRepository.save(tramite);
+
 		newSeguimientoRequest.setNuevoEstado(updatedTramite.getEstado());
 		newSeguimientoRequest.setCreadoEn(LocalDate.now());
-
 		seguimientoRepository.save(newSeguimientoRequest);
 
 	}
@@ -168,11 +171,19 @@ public class TramiteService {
 
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-		Tramite tramite = tramiteRepository.findById(requestedId).orElseThrow(
-				() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
+		Tramite tramite = tramiteRepository.findById(requestedId)
+				.orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 
 		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
 				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
+
+		if (tramite.getEstado() == EstadoTramite.FINALIZADO || tramite.getEstado() == EstadoTramite.RECHAZADO) {
+			throw new IllegalArgumentException("No se puede actualizar el estado del tramite.");
+		}
+
+		if (dto.estadoTramite() == EstadoTramite.FINALIZADO) {
+			tramite.setFinalizadoEn(LocalDate.now());
+		}
 
 		Seguimiento newSeguimientoRequest = new Seguimiento();
 		newSeguimientoRequest.setTramiteId(tramite);
@@ -181,6 +192,7 @@ public class TramiteService {
 		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
 
 		tramite.setEstado(dto.estadoTramite());
+		tramite.setActualizadoEn(LocalDate.now());
 		Tramite updatedTramite = tramiteRepository.save(tramite);
 
 		newSeguimientoRequest.setNuevoEstado(updatedTramite.getEstado());
@@ -194,8 +206,8 @@ public class TramiteService {
 
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-		Tramite tramite = tramiteRepository.findById(requestedId).orElseThrow(
-				() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
+		Tramite tramite = tramiteRepository.findById(requestedId)
+				.orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 
 		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
 				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
@@ -207,12 +219,31 @@ public class TramiteService {
 		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
 
 		tramite.setComentario(dto.comentario());
+		tramite.setActualizadoEn(LocalDate.now());
 		Tramite updatedTramite = tramiteRepository.save(tramite);
 
 		newSeguimientoRequest.setNuevoEstado(updatedTramite.getEstado());
 		newSeguimientoRequest.setCreadoEn(LocalDate.now());
 		seguimientoRepository.save(newSeguimientoRequest);
 
+	}
+
+	public List<TramiteResponseDTO> findTramiteByFuncionarioId(Long funcionarioId) {
+
+		var list = tramiteRepository.findByAsignadoAId(funcionarioId);
+
+		return list.stream()
+				.map(p -> new TramiteResponseDTO(p.getId(), p.getRadicadoPorId(), p.getRadicadoPorEmail(),
+						p.getTipoTramiteNombre(), p.getComentario(), p.getEstado(), p.getNumeroRadicado(),
+						p.getFinalizadoEn()))
+				.toList();
+	}
+
+	public List<SeguimientoResponseDTO> findSeguimientoByTramiteId(Long tramiteId) {
+		var list = seguimientoRepository.findByTramiteId(tramiteId);
+
+		return list.stream().map(p -> new SeguimientoResponseDTO(p.getCreadoEn(), p.getCreadoPorEmail(),
+				p.getTipoEvento(), p.getUltimoEstado(), p.getNuevoEstado())).toList();
 	}
 
 }
