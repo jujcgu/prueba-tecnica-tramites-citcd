@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS public.seguimiento
     tramite_id bigint NOT NULL,
     creado_por bigint NOT NULL,
     tipo_evento character varying COLLATE pg_catalog."default" NOT NULL,
-    comentario text COLLATE pg_catalog."default",
     ultimo_estado character varying COLLATE pg_catalog."default",
     nuevo_estado character varying COLLATE pg_catalog."default",
     creado_en date NOT NULL,
@@ -21,8 +20,7 @@ CREATE TABLE IF NOT EXISTS public.seguimiento
         REFERENCES public.tramite (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
-    CONSTRAINT tipo_evento_nombre_chk CHECK (tipo_evento::text = ANY (ARRAY['COMENTARIO'::character varying, 'ASIGNACION'::character varying, 'CAMBIO_ESTADO'::character varying, 'CREACION'::character varying]::text[])),
-    CONSTRAINT seguimiento_comentario_chk CHECK (tipo_evento::text <> 'COMENTARIO'::text OR comentario IS NOT NULL)
+    CONSTRAINT tipo_evento_nombre_chk CHECK (tipo_evento::text = ANY (ARRAY['COMENTARIO'::character varying, 'ASIGNACION'::character varying, 'CAMBIO_ESTADO'::character varying, 'CREACION'::character varying]::text[]))
 )
 
 TABLESPACE pg_default;
