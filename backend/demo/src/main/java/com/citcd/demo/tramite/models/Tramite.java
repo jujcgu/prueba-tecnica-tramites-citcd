@@ -24,38 +24,38 @@ import lombok.Data;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "tramite_numero_radicado_key", columnNames = {
-        "numeroRadicado" }), check = @CheckConstraint(name = "estado_nombre_chk", constraint = "estado::text = ANY (ARRAY['RADICADO'::character varying, 'EN_PROCESO'::character varying, 'FINALIZADO'::character varying, 'RECHAZADO'::character varying]::text[])"))
+		"numeroRadicado" }), check = @CheckConstraint(name = "estado_nombre_chk", constraint = "estado::text = ANY (ARRAY['RADICADO'::character varying, 'EN_PROCESO'::character varying, 'FINALIZADO'::character varying, 'RECHAZADO'::character varying]::text[])"))
 @Data
 public class Tramite {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "tramite_radicado_por_fkey"))
-    private Usuario radicadoPor;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "radicado_por", nullable = false, foreignKey = @ForeignKey(name = "tramite_radicado_por_fkey"))
+	private Usuario radicadoPor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "tramite_tipo_tramite_id_fkey"))
-    private TipoTramite tipoTramiteId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tipo_tramite_id", nullable = false, foreignKey = @ForeignKey(name = "tramite_tipo_tramite_id_fkey"))
+	private TipoTramite tipoTramiteId;
 
-    private String descripcion;
+	private String comentario;
 
-    @Enumerated(EnumType.STRING)
-    private EstadoTramite estado;
+	@Enumerated(EnumType.STRING)
+	private EstadoTramite estado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "tramite_asignado_a_fkey"))
-    private Usuario asignadoA;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "asignado_a", foreignKey = @ForeignKey(name = "tramite_asignado_a_fkey"))
+	private Usuario asignadoA;
 
-    private Long numeroRadicado;
+	private Long numeroRadicado;
 
-    private LocalDate finalizadoEn;
+	private LocalDate finalizadoEn;
 
-    @Column(nullable = false)
-    private LocalDate creadoEn;
+	@Column(nullable = false)
+	private LocalDate creadoEn;
 
-    private LocalDate actualizadoEn;
+	private LocalDate actualizadoEn;
 
 }
