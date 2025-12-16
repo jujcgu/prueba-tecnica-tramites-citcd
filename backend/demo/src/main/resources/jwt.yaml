@@ -1,0 +1,5 @@
+demo:
+  jwt:
+    issuer: "citcd"
+    secret: 1080717ac98879f3584b9899bbd43842beaea927231548603271957e599443b2
+    access-token-minutes: 60
