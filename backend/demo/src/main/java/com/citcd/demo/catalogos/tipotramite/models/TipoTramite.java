@@ -9,18 +9,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "tipo_tramite_codigo_key", columnNames = {
         "codigo" }))
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class TipoTramite {
 
     @Id
