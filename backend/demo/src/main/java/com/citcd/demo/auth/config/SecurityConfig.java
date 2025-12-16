@@ -3,6 +3,7 @@ package com.citcd.demo.auth.config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,36 +24,37 @@ import com.citcd.demo.auth.jwt.JwtService;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
-    @Bean
-    public JwtService jwtService(JwtProperties props) {
-        return new JwtService(props);
-    }
+	@Bean
+	JwtService jwtService(JwtProperties props) {
+		return new JwtService(props);
+	}
 
-    @Bean
-    public JwtAuthFilter jwtAuthFilter(JwtService jwtService, UserDetailsService uds) {
-        return new JwtAuthFilter(jwtService, uds);
-    }
+	@Bean
+	JwtAuthFilter jwtAuthFilter(JwtService jwtService, UserDetailsService uds) {
+		return new JwtAuthFilter(jwtService, uds);
+	}
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
+	@Bean
+	SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+		return http.csrf(csrf -> csrf.disable())
+				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/auth/**").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/tramites/**").authenticated()
+						.requestMatchers(HttpMethod.GET, "/tipo-docuemntos/**", "/tipo-tramites/**").authenticated()
+						.requestMatchers(HttpMethod.PUT, "/api/tramites/**").hasRole("ADMINISTRATIVO").anyRequest()
+						.authenticated())
+				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
+	}
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+	@Bean
+	AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
 
 }
