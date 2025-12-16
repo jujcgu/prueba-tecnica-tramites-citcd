@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.citcd.demo.tramite.dtos.ActualizarEstadoTramiteDTO;
+import com.citcd.demo.tramite.dtos.AgregarComentarioTramiteDTO;
 import com.citcd.demo.tramite.dtos.AsignarFuncionarioTramiteDTO;
 import com.citcd.demo.tramite.dtos.TramiteRequestDTO;
 import com.citcd.demo.tramite.models.Tramite;
@@ -52,6 +53,14 @@ public class TramiteController {
             @PathVariable("id") Long requestedId,
             @Valid @RequestBody ActualizarEstadoTramiteDTO dto) {
         service.actualizarEstadoTramite(requestedId, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/comentario")
+    public ResponseEntity<Void> agregarComentarioTramite(
+            @PathVariable("id") Long requestedId,
+            @Valid @RequestBody AgregarComentarioTramiteDTO dto) {
+        service.agregarComentarioTramite(requestedId, dto);
         return ResponseEntity.noContent().build();
     }
 

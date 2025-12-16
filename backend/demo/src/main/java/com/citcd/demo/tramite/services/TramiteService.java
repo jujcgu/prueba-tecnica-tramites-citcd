@@ -28,6 +28,7 @@ import com.citcd.demo.seguimiento.model.Seguimiento;
 import com.citcd.demo.seguimiento.model.enums.TipoEvento;
 import com.citcd.demo.seguimiento.repositories.SeguimientoRepository;
 import com.citcd.demo.tramite.dtos.ActualizarEstadoTramiteDTO;
+import com.citcd.demo.tramite.dtos.AgregarComentarioTramiteDTO;
 import com.citcd.demo.tramite.dtos.AsignarFuncionarioTramiteDTO;
 import com.citcd.demo.tramite.dtos.TramiteRequestDTO;
 import com.citcd.demo.tramite.models.Tramite;
@@ -180,6 +181,32 @@ public class TramiteService {
 		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
 
 		tramite.setEstado(dto.estadoTramite());
+		Tramite updatedTramite = tramiteRepository.save(tramite);
+
+		newSeguimientoRequest.setNuevoEstado(updatedTramite.getEstado());
+		newSeguimientoRequest.setCreadoEn(LocalDate.now());
+		seguimientoRepository.save(newSeguimientoRequest);
+
+	}
+
+	@Transactional
+	public void agregarComentarioTramite(Long requestedId, AgregarComentarioTramiteDTO dto) {
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		Tramite tramite = tramiteRepository.findById(requestedId).orElseThrow(
+				() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
+
+		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
+				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
+
+		Seguimiento newSeguimientoRequest = new Seguimiento();
+		newSeguimientoRequest.setTramiteId(tramite);
+		newSeguimientoRequest.setCreadoPor(creadoPor);
+		newSeguimientoRequest.setTipoEvento(TipoEvento.COMENTARIO);
+		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
+
+		tramite.setComentario(dto.comentario());
 		Tramite updatedTramite = tramiteRepository.save(tramite);
 
 		newSeguimientoRequest.setNuevoEstado(updatedTramite.getEstado());
