@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/demo
+    username: demo
+    password: demo
+  jpa:
+    open-in-view: false
+  config:
+    import:
+    - "optional:classpath:jwt.yaml"
+  mvc:
+    problemdetails:
+      enabled: true
