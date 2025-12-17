@@ -13,15 +13,15 @@ import com.citcd.demo.catalogos.tipodocumento.services.TipoDocumentoService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/tipo-docuemntos")
+@RequestMapping("/api/tipos-documento")
 @RequiredArgsConstructor
 public class TipoDocumentoController {
 
-    private final TipoDocumentoService service;
+	private final TipoDocumentoService service;
 
-    @GetMapping("/combo")
-    public ResponseEntity<List<TipoDocumentoComboDTO>> findAllForCombo() {
-        return ResponseEntity.ok(service.findAllForCombo());
-    }
+	@GetMapping("/activos/combo")
+	public ResponseEntity<List<TipoDocumentoComboDTO>> listarActivosParaCombo() {
+		return ResponseEntity.ok(service.getActivosParaCombo());
+	}
 
 }

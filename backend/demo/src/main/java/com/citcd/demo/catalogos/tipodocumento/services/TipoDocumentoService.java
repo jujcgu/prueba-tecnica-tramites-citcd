@@ -15,13 +15,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TipoDocumentoService {
 
-    private final TipoDocumentoRepository repository;
+	private final TipoDocumentoRepository repository;
 
-    public List<TipoDocumentoComboDTO> findAllForCombo() {
-        return repository.findByEsActivoTrue()
-                .stream()
-                .map(p -> new TipoDocumentoComboDTO(p.getId(), p.getNombre()))
-                .toList();
-    }
+	public List<TipoDocumentoComboDTO> getActivosParaCombo() {
+		return repository.findByEsActivoTrue().stream().map(p -> new TipoDocumentoComboDTO(p.getId(), p.getNombre()))
+				.toList();
+	}
 
 }

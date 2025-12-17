@@ -38,12 +38,12 @@ public class SecurityConfig {
 	SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
 		return http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/auth/**").permitAll()
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/tramites/**").authenticated()
-						.requestMatchers(HttpMethod.GET, "/tipo-docuemntos/**", "/tipo-tramites/**").authenticated()
-						.requestMatchers(HttpMethod.PUT, "/api/tramites/**").hasRole("ADMINISTRATIVO").anyRequest()
-						.authenticated())
+						.requestMatchers(HttpMethod.GET, "/api/tipos-documento/**", "/api/tipos-tramite/**")
+						.authenticated().requestMatchers(HttpMethod.PUT, "/api/tramites/**").hasRole("ADMINISTRATIVO")
+						.requestMatchers(HttpMethod.GET, "/api/tramites/**", "/api/usuarios/**", "/api/estados-tramite")
+						.hasRole("ADMINISTRATIVO").anyRequest().authenticated())
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}
 
