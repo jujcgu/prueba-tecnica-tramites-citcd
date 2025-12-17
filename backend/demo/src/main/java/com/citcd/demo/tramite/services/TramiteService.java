@@ -148,6 +148,7 @@ public class TramiteService {
 		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
 
 		tramite.setAsignadoA(funcionario);
+		tramite.setEstado(EstadoTramite.EN_PROCESO);
 		tramite.setActualizadoEn(LocalDate.now());
 		Tramite updatedTramite = tramiteRepository.save(tramite);
 
