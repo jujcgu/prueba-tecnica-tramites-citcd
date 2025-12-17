@@ -3,6 +3,7 @@ package com.citcd.demo.auth.controllers;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,7 +29,11 @@ public class AuthController {
 		Authentication auth = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(req.email(), req.password()));
 
+		boolean isAdmin = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+				.anyMatch(a -> a.equals("ROLE_ADMINISTRATIVO") || a.equals("ADMINISTRATIVO"));
+
 		String token = jwtService.generateAccessToken((UserDetails) auth.getPrincipal());
-		return new LoginResponse(token, "Bearer");
+
+		return new LoginResponse(token, isAdmin);
 	}
 }
