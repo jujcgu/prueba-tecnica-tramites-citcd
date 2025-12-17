@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.citcd.demo.auth.dtos.LoginRequest;
+import com.citcd.demo.auth.dtos.LoginResponse;
 import com.citcd.demo.auth.jwt.JwtService;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -20,22 +20,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
+	private final AuthenticationManager authenticationManager;
+	private final JwtService jwtService;
 
-    public record LoginRequest(@Email @NotBlank String email, @NotBlank String password) {
-    }
+	@PostMapping("/login")
+	public LoginResponse login(@RequestBody LoginRequest req) {
+		Authentication auth = authenticationManager
+				.authenticate(new UsernamePasswordAuthenticationToken(req.email(), req.password()));
 
-    public record LoginResponse(String accessToken, String tokenType) {
-    }
-
-    @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest req) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.email(), req.password()));
-
-        String token = jwtService
-                .generateAccessToken((UserDetails) auth.getPrincipal());
-        return new LoginResponse(token, "Bearer");
-    }
+		String token = jwtService.generateAccessToken((UserDetails) auth.getPrincipal());
+		return new LoginResponse(token, "Bearer");
+	}
 }
