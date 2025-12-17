@@ -1,0 +1,16 @@
+{
+  "id": "242386ea-f7d9-4132-8606-27198819451c",
+  "name": "Globals",
+  "values": [
+    {
+      "key": "accessToken",
+      "value": "",
+      "enabled": true,
+      "type": "any",
+      "description": ""
+    }
+  ],
+  "_postman_variable_scope": "globals",
+  "_postman_exported_at": "2025-12-17T14:11:34.199Z",
+  "_postman_exported_using": "Postman/11.0.0"
+}

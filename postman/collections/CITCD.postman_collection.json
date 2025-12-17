@@ -1,0 +1,373 @@
+{
+  "info": {
+    "_postman_id": "364c3565-8192-431a-b5aa-71fe54b6c11b",
+    "name": "CITCD",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "05883c7b-7722-4c68-916e-fada38fe6bba",
+                "exec": [
+                  "const responseJson = pm.response.json();\r",
+                  "\r",
+                  "const accessToken = responseJson.accessToken;\r",
+                  "\r",
+                  "if (accessToken) {\r",
+                  "    pm.environment.set(\"accessToken\", accessToken);\r",
+                  "    pm.globals.set(\"accessToken\", accessToken);\r",
+                  "    console.log(\"JWT saved:\", accessToken);\r",
+                  "} else {\r",
+                  "    console.log(\"No token found in response body\");\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "7114620b-326d-447d-a679-031bde7c5847",
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "id": "7d695f3b-4d30-46a7-93ec-48e5568f6666",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"us7ghkxqil@bwmyga.com\",\r\n    \"password\": \"us7ghkxqil@bwmyga.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/auth/login",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "94890915-9cd6-459e-b6f3-68c6bce8eb2c",
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "tipos-tramite",
+      "item": [
+        {
+          "name": "listarActivosParaCombo",
+          "id": "b93128eb-4306-4721-878f-c7182f446558",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tipos-tramite/activos/combo",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tipos-tramite",
+                "activos",
+                "combo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "c09dfbb0-531a-4496-8a15-449b2363cfe9"
+    },
+    {
+      "name": "usuarios",
+      "item": [
+        {
+          "name": "listarAdministrativosActivosParaCombo",
+          "id": "5b9b9687-4cba-4025-a87b-f9280363f4eb",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/usuarios/administrativos/activos/combo",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "administrativos",
+                "activos",
+                "combo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "e3c22a25-3980-44db-abf1-e03a25edc905"
+    },
+    {
+      "name": "tipo-docuemntos",
+      "item": [
+        {
+          "name": "listarActivosParaCombo",
+          "id": "f7f0f5ed-567f-4e4a-be35-868b7115157c",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tipos-documento/activos/combo",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento",
+                "activos",
+                "combo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "32ecc6d9-43e4-45cf-84aa-1f6854675b70"
+    },
+    {
+      "name": "estados-tramite",
+      "item": [
+        {
+          "name": "listarEstados",
+          "id": "e540f863-2c39-46a6-9875-09fb3a4fcb25",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/estados-tramite",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "estados-tramite"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "64707c62-0618-4784-a6f8-cbdc5e046999"
+    },
+    {
+      "name": "tramites",
+      "item": [
+        {
+          "name": "createTramite",
+          "id": "7495eb37-0615-4550-9c31-e3c593d1acec",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"tipoTramiteId\": 1,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 3,\r\n      \"nombreArchivo\": \"certificado_notas.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/certificado_notas.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 5,\r\n      \"nombreArchivo\": \"carta_solicitud.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/carta_solicitud.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "asignarFuncionarioTramite",
+          "id": "1f2cbe2e-e1b9-4c69-9dc8-cbcc904e3612",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"funcionarioId\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites/3/asignar",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "3",
+                "asignar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "actualizarEstadoTramite",
+          "id": "fb072930-270a-4d31-9a21-4451ceb164e8",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"estadoTramite\": \"FINALIZADO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites/2/estado",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "2",
+                "estado"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "agregarComentarioTramite",
+          "id": "ddfc1c64-42d7-46b0-9bf2-e03ab9eef696",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"comentario\": \"el estudiante, cumple con los requisitos para la homologacion.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites/3/comentario",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "3",
+                "comentario"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "findTramiteByFuncionarioId",
+          "id": "d054427a-4108-4340-b25c-5e110bb69a08",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tramites/funcionario/1",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "funcionario",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "findSeguimientoByTramiteId",
+          "id": "67d90c60-9172-4e1d-9946-f681319bc76d",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tramites/3/seguimiento",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "3",
+                "seguimiento"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "73584720-78fb-4942-97ea-287d00e31e63"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "id": "5d1bb02c-f2da-48f6-a3a8-b325a9cbd923",
+      "key": "host-port",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}
