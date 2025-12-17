@@ -1,37 +1,82 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+############################
+# OS
+############################
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+############################
+# Logs / temp
+############################
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+############################
+# Secrets
+############################
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+############################
+# IDEs
+############################
+# IntelliJ / STS / Eclipse
+.idea/
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+*.iws
+.classpath
+.project
+.settings/
+.springBeans
+.factorypath
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/tasks.json
 
-### VS Code ###
-.vscode/
+############################
+# FRONTEND
+############################
+frontend/demo/node_modules/
+frontend/demo/dist/
+frontend/demo/out-tsc/
+frontend/demo/coverage/
+frontend/demo/.angular/
+frontend/demo/.angular/cache/
+frontend/demo/.cache/
+frontend/demo/.eslintcache
+
+############################
+# BACKEND
+############################
+# Maven
+backend/demo/target/
+**/target/
+
+# Gradle
+backend/demo/build/
+backend/demo/.gradle/
+**/build/
+**/.gradle/
+
+# Compilados
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
