@@ -60,11 +60,12 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/auth/login",
+              "raw": "{{host-port}}/api/auth/login",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
+                "api",
                 "auth",
                 "login"
               ]
