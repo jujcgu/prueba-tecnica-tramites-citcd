@@ -11,8 +11,8 @@ import { map, shareReplay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navigation',
-  templateUrl: './navigation.component.html',
-  styleUrl: './navigation.component.scss',
+  templateUrl: './navigation.html',
+  styleUrl: './navigation.scss',
   imports: [
     MatToolbarModule,
     MatButtonModule,
@@ -22,7 +22,7 @@ import { map, shareReplay } from 'rxjs/operators';
     AsyncPipe,
   ]
 })
-export class NavigationComponent {
+export class Navigation {
   private breakpointObserver = inject(BreakpointObserver);
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
