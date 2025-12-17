@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -27,6 +26,8 @@ import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private static final MediaType PROBLEM_JSON = MediaType.APPLICATION_PROBLEM_JSON;
 
     private static final URI TYPE_VALIDATION = URI.create("urn:problem:validation");
     private static final URI TYPE_NOT_FOUND = URI.create("urn:problem:not-found");
@@ -52,13 +53,12 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
                         "rejectedValue", fe.getRejectedValue(),
                         "message", fe.getDefaultMessage()))
                 .toList();
-        pd.setProperty("errors", errors);
-        pd.setProperty("timestamp", OffsetDateTime.now().toString());
 
-        setInstanceFromRequest(pd, request);
-        return ResponseEntity.status(status)
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(pd);
+        pd.setProperty("errors", errors);
+        enrich(pd, request);
+
+        headers.setContentType(PROBLEM_JSON);
+        return ResponseEntity.status(status).headers(headers).body(pd);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -69,17 +69,19 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         pd.setTitle("Validation failed");
         pd.setType(TYPE_VALIDATION);
         pd.setDetail("Request parameters have validation errors.");
+
         pd.setProperty("violations", ex.getConstraintViolations().stream()
                 .map(v -> Map.of(
                         "path", String.valueOf(v.getPropertyPath()),
                         "invalidValue", v.getInvalidValue(),
                         "message", v.getMessage()))
                 .toList());
+
         pd.setProperty("timestamp", OffsetDateTime.now().toString());
         pd.setInstance(URI.create(req.getRequestURI()));
 
         return ResponseEntity.status(pd.getStatus())
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .contentType(PROBLEM_JSON)
                 .body(pd);
     }
 
@@ -94,7 +96,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         pd.setInstance(URI.create(req.getRequestURI()));
 
         return ResponseEntity.status(pd.getStatus())
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .contentType(PROBLEM_JSON)
                 .body(pd);
     }
 
@@ -109,24 +111,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         pd.setInstance(URI.create(req.getRequestURI()));
 
         return ResponseEntity.status(pd.getStatus())
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(pd);
-    }
-
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ProblemDetail> handleResponseStatus(
-            ResponseStatusException ex, HttpServletRequest req) {
-
-        HttpStatusCode code = ex.getStatusCode();
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(code,
-                ex.getReason() != null ? ex.getReason() : "Request failed");
-        pd.setTitle(code.toString());
-        pd.setType(TYPE_BAD_REQUEST);
-        pd.setProperty("timestamp", OffsetDateTime.now().toString());
-        pd.setInstance(URI.create(req.getRequestURI()));
-
-        return ResponseEntity.status(code)
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .contentType(PROBLEM_JSON)
                 .body(pd);
     }
 
@@ -142,23 +127,24 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         pd.setInstance(URI.create(req.getRequestURI()));
 
         return ResponseEntity.status(pd.getStatus())
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .contentType(PROBLEM_JSON)
                 .body(pd);
     }
 
-    @ExceptionHandler(ErrorResponseException.class)
-    public ResponseEntity<ProblemDetail> handleErrorResponseException(
-            ErrorResponseException ex, HttpServletRequest req) {
+    @Override
+    protected ResponseEntity<Object> handleErrorResponseException(
+            ErrorResponseException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
         ProblemDetail pd = ex.getBody();
-        if (pd.getInstance() == null) {
-            pd.setInstance(URI.create(req.getRequestURI()));
+        if (pd != null) {
+            if (pd.getType() == null || URI.create("about:blank").equals(pd.getType())) {
+                pd.setType(defaultType(status));
+            }
+            enrich(pd, request);
         }
-        pd.setProperty("timestamp", OffsetDateTime.now().toString());
 
-        return ResponseEntity.status(ex.getStatusCode())
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(pd);
+        headers.setContentType(PROBLEM_JSON);
+        return ResponseEntity.status(status).headers(headers).body(pd);
     }
 
     @ExceptionHandler(Exception.class)
@@ -173,13 +159,25 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         pd.setInstance(URI.create(req.getRequestURI()));
 
         return ResponseEntity.status(pd.getStatus())
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .contentType(PROBLEM_JSON)
                 .body(pd);
     }
 
-    private static void setInstanceFromRequest(ProblemDetail pd, WebRequest request) {
-        if (request instanceof ServletWebRequest swr) {
+    private static void enrich(ProblemDetail pd, WebRequest request) {
+        pd.setProperty("timestamp", OffsetDateTime.now().toString());
+        if (pd.getInstance() == null && request instanceof ServletWebRequest swr) {
             pd.setInstance(URI.create(swr.getRequest().getRequestURI()));
         }
+    }
+
+    private static URI defaultType(HttpStatusCode status) {
+        int s = status.value();
+        if (s == 404)
+            return TYPE_NOT_FOUND;
+        if (s == 409)
+            return TYPE_CONFLICT;
+        if (s >= 400 && s < 500)
+            return TYPE_BAD_REQUEST;
+        return TYPE_INTERNAL;
     }
 }
