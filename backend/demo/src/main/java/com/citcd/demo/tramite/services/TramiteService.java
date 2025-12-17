@@ -2,7 +2,9 @@ package com.citcd.demo.tramite.services;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,48 +55,33 @@ public class TramiteService {
 	private final SeguimientoRepository seguimientoRepository;
 	private final JdbcTemplate jdbcTemplate;
 
+	private static final Map<EstadoTramite, Set<EstadoTramite>> TRANSICIONES = Map.of(
+			EstadoTramite.RADICADO, Set.of(EstadoTramite.EN_PROCESO, EstadoTramite.RECHAZADO),
+			EstadoTramite.EN_PROCESO, Set.of(EstadoTramite.FINALIZADO, EstadoTramite.RECHAZADO));
+
+	private Usuario usuarioAutenticado() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String email = auth.getName();
+		return usuarioRepository.findByEmail(email)
+				.orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con email " + email));
+	}
+
 	@Transactional
 	public Tramite createTramite(TramiteRequestDTO dto) {
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		Long numeroRadicado = jdbcTemplate.queryForObject("select nextval('numero_radicado_seq')", Long.class);
 
 		TipoTramite tipoTramite = tipoTramiteRepository.findById(dto.tipoTramiteId()).orElseThrow(
 				() -> new EntityNotFoundException("Tipo de tramite no encontrado con id " + dto.tipoTramiteId()));
 
-		Usuario usuario = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
-				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
+		Usuario usuario = usuarioAutenticado();
 
 		List<TipoTramiteDocumento> obligatorios = tipoTramiteDocumentoRepository
 				.findByTipoTramiteId_IdAndEsObligatorioTrueOrderByOrdenAsc(tipoTramite.getId());
 
 		List<AdjuntoRequestDTO> adjuntos = (dto.adjuntos() == null) ? List.of() : dto.adjuntos();
 
-		for (AdjuntoRequestDTO a : adjuntos) {
-			boolean permitido = tipoTramiteDocumentoRepository
-					.existsByTipoTramiteId_IdAndTipoDocumentoId_Id(tipoTramite.getId(), a.tipoDocumentoId());
-
-			if (!permitido) {
-				var permitidos = tipoTramiteDocumentoRepository
-						.findByTipoTramiteId_IdOrderByOrdenAsc(tipoTramite.getId()).stream()
-						.map(x -> x.getTipoDocumentoId().getId()).toList();
-
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-						"El tipoDocumentoId=%d no está asociado al tipoTramiteId=%d. Permitidos=%s"
-								.formatted(a.tipoDocumentoId(), tipoTramite.getId(), permitidos));
-			}
-		}
-
-		Set<Long> idsEnviados = adjuntos.stream().map(AdjuntoRequestDTO::tipoDocumentoId)
-				.collect(java.util.stream.Collectors.toSet());
-
-		List<Long> faltantes = obligatorios.stream().map(ttd -> ttd.getTipoDocumentoId().getId())
-				.filter(reqId -> !idsEnviados.contains(reqId)).toList();
-
-		if (!faltantes.isEmpty()) {
-			throw new IllegalArgumentException("Faltan documentos obligatorios: " + faltantes);
-		}
+		validarAdjuntos(tipoTramite, obligatorios, adjuntos);
 
 		Tramite newTramiteRequest = new Tramite();
 		newTramiteRequest.setRadicadoPor(usuario);
@@ -107,6 +94,7 @@ public class TramiteService {
 		Tramite savedTramite = tramiteRepository.save(newTramiteRequest);
 
 		List<Adjunto> adjuntosEntity = new java.util.ArrayList<>();
+
 		for (AdjuntoRequestDTO a : adjuntos) {
 			TipoDocumento tipoDocumento = tipoDocumentoRepository.findById(a.tipoDocumentoId()).orElseThrow(
 					() -> new EntityNotFoundException("Tipo de documento no encontrado con id " + a.tipoDocumentoId()));
@@ -138,17 +126,20 @@ public class TramiteService {
 	@Transactional
 	public void asignarFuncionarioTramite(Long requestedId, AsignarFuncionarioTramiteDTO dto) {
 
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-		Usuario usuario = usuarioRepository.findByIdAndRol(dto.funcionarioId(), RolUsuario.ROLE_ADMINISTRATIVO)
+		Usuario funcionario = usuarioRepository
+				.findByIdAndRolAndEsActivoTrue(dto.funcionarioId(), RolUsuario.ROLE_ADMINISTRATIVO)
 				.orElseThrow(
 						() -> new EntityNotFoundException("Funcionario no encontrado con id " + dto.funcionarioId()));
 
 		Tramite tramite = tramiteRepository.findById(requestedId)
 				.orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 
-		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
-				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
+		if (tramite.getEstado() == EstadoTramite.FINALIZADO || tramite.getEstado() == EstadoTramite.RECHAZADO) {
+			throw new IllegalArgumentException(
+					"No se puede asignar funcionario: el trámite está FINALIZADO/RECHAZADO.");
+		}
+
+		Usuario creadoPor = usuarioAutenticado();
 
 		Seguimiento newSeguimientoRequest = new Seguimiento();
 		newSeguimientoRequest.setTramiteId(tramite);
@@ -156,7 +147,7 @@ public class TramiteService {
 		newSeguimientoRequest.setTipoEvento(TipoEvento.ASIGNACION);
 		newSeguimientoRequest.setUltimoEstado(tramite.getEstado());
 
-		tramite.setAsignadoA(usuario);
+		tramite.setAsignadoA(funcionario);
 		tramite.setActualizadoEn(LocalDate.now());
 		Tramite updatedTramite = tramiteRepository.save(tramite);
 
@@ -169,17 +160,12 @@ public class TramiteService {
 	@Transactional
 	public void actualizarEstadoTramite(Long requestedId, ActualizarEstadoTramiteDTO dto) {
 
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
 		Tramite tramite = tramiteRepository.findById(requestedId)
 				.orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 
-		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
-				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
+		Usuario creadoPor = usuarioAutenticado();
 
-		if (tramite.getEstado() == EstadoTramite.FINALIZADO || tramite.getEstado() == EstadoTramite.RECHAZADO) {
-			throw new IllegalArgumentException("No se puede actualizar el estado del tramite.");
-		}
+		validarTransicion(tramite.getEstado(), dto.estadoTramite());
 
 		if (dto.estadoTramite() == EstadoTramite.FINALIZADO) {
 			tramite.setFinalizadoEn(LocalDate.now());
@@ -204,13 +190,15 @@ public class TramiteService {
 	@Transactional
 	public void agregarComentarioTramite(Long requestedId, AgregarComentarioTramiteDTO dto) {
 
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
 		Tramite tramite = tramiteRepository.findById(requestedId)
 				.orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 
-		Usuario creadoPor = usuarioRepository.findByEmail(authentication.getName()).orElseThrow(
-				() -> new EntityNotFoundException("Usuario no encontrado con email " + authentication.getName()));
+		if (tramite.getEstado() == EstadoTramite.FINALIZADO || tramite.getEstado() == EstadoTramite.RECHAZADO) {
+			throw new IllegalArgumentException(
+					"No se puede agregar el comentario: el trámite está FINALIZADO/RECHAZADO.");
+		}
+
+		Usuario creadoPor = usuarioAutenticado();
 
 		Seguimiento newSeguimientoRequest = new Seguimiento();
 		newSeguimientoRequest.setTramiteId(tramite);
@@ -244,6 +232,58 @@ public class TramiteService {
 
 		return list.stream().map(p -> new SeguimientoResponseDTO(p.getCreadoEn(), p.getCreadoPorEmail(),
 				p.getTipoEvento(), p.getUltimoEstado(), p.getNuevoEstado())).toList();
+	}
+
+	private void validarTransicion(EstadoTramite actual, EstadoTramite nuevo) {
+
+		if (nuevo == null)
+			throw new IllegalArgumentException("estadoTramite es obligatorio");
+
+		if (actual == nuevo)
+			throw new IllegalArgumentException("El trámite ya está en el estado " + actual);
+
+		var permitidos = TRANSICIONES.getOrDefault(actual, Set.of());
+
+		if (!permitidos.contains(nuevo)) {
+			throw new IllegalArgumentException(
+					"Transición no permitida: " + actual + " -> " + nuevo + ". Permitidas=" + permitidos);
+		}
+
+	}
+
+	private void validarAdjuntos(TipoTramite tipoTramite, List<TipoTramiteDocumento> obligatorios,
+			List<AdjuntoRequestDTO> adjuntos) {
+
+		var asociados = tipoTramiteDocumentoRepository.findByTipoTramiteId_IdOrderByOrdenAsc(tipoTramite.getId());
+
+		Set<Long> permitidosIds = asociados.stream()
+				.map(x -> x.getTipoDocumentoId().getId())
+				.collect(Collectors.toSet());
+
+		for (AdjuntoRequestDTO a : adjuntos) {
+			if (!permitidosIds.contains(a.tipoDocumentoId())) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						"El tipoDocumentoId=%d no está asociado al tipoTramiteId=%d. Permitidos=%s"
+								.formatted(a.tipoDocumentoId(), tipoTramite.getId(), permitidosIds));
+			}
+		}
+
+		Set<Long> idsEnviados = adjuntos.stream()
+				.map(AdjuntoRequestDTO::tipoDocumentoId)
+				.collect(Collectors.toSet());
+
+		var faltantes = obligatorios.stream()
+				.map(ttd -> ttd.getTipoDocumentoId().getId())
+				.filter(reqId -> !idsEnviados.contains(reqId))
+				.toList();
+
+		if (!faltantes.isEmpty()) {
+			throw new IllegalArgumentException("Faltan documentos obligatorios: " + faltantes);
+		}
+
+		if (idsEnviados.size() != adjuntos.size()) {
+			throw new IllegalArgumentException("Hay documentos repetidos (tipoDocumentoId duplicado).");
+		}
 	}
 
 }
