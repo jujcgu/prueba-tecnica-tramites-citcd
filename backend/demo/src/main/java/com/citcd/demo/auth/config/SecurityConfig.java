@@ -35,15 +35,20 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-		return http.csrf(csrf -> csrf.disable())
+	SecurityFilterChain apiSecurityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+		return http.securityMatcher("/api/**").csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/tramites/**").authenticated()
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
+
+						.requestMatchers(HttpMethod.PUT, "/api/tramites/**").hasRole("ADMINISTRATIVO")
+						.requestMatchers(HttpMethod.GET, "/api/tramites/**", "/api/usuarios/**",
+								"/api/estados-tramite/**")
+						.hasRole("ADMINISTRATIVO")
+
 						.requestMatchers(HttpMethod.GET, "/api/tipos-documento/**", "/api/tipos-tramite/**")
-						.authenticated().requestMatchers(HttpMethod.PUT, "/api/tramites/**").hasRole("ADMINISTRATIVO")
-						.requestMatchers(HttpMethod.GET, "/api/tramites/**", "/api/usuarios/**", "/api/estados-tramite")
-						.hasRole("ADMINISTRATIVO").anyRequest().authenticated())
+						.authenticated().requestMatchers(HttpMethod.POST, "/api/tramites/**").authenticated()
+
+						.anyRequest().authenticated())
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}
 

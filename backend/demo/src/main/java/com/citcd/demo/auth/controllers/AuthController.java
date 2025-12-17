@@ -17,7 +17,7 @@ import com.citcd.demo.auth.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
