@@ -190,7 +190,7 @@
       "name": "tramites",
       "item": [
         {
-          "name": "createTramite",
+          "name": "createTramite \"Homologación\"",
           "id": "7495eb37-0615-4550-9c31-e3c593d1acec",
           "request": {
             "method": "POST",
@@ -198,6 +198,34 @@
             "body": {
               "mode": "raw",
               "raw": "{\r\n  \"tipoTramiteId\": 1,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 3,\r\n      \"nombreArchivo\": \"certificado_notas.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/certificado_notas.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 5,\r\n      \"nombreArchivo\": \"carta_solicitud.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/carta_solicitud.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createTramite \"Cancelación de semestre\"",
+          "id": "9bc78534-cbc3-4863-a9e1-9d35e3c53ae5",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"tipoTramiteId\": 2,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 4,\r\n      \"nombreArchivo\": \"formato_cancelacion.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/formato_cancelacion.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 8,\r\n      \"nombreArchivo\": \"soporte_medico.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/soporte_medico.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
               "options": {
                 "raw": {
                   "language": "json"
