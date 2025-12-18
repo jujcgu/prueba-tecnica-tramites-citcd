@@ -1,0 +1,115 @@
+:host {
+  width: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 40px);
+
+  background: var(--mat-sys-surface-dim, #f2f2f2);
+  color: var(--mat-sys-on-surface, #111);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* solo si realmente hace falta */
+}
+
+.card {
+  width: min(960px, 100%);
+  padding: clamp(20px, 3.5vw, 40px);
+  border-radius: 28px;
+
+  background: var(--mat-sys-surface, #fff);
+  color: var(--mat-sys-on-surface, #111);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(320px, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+
+.left {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding-top: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+/* Material */
+mat-form-field {
+  width: 100%;
+}
+
+.actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Quita “aire” extra del link (opcional, más estilo Google) */
+.actions a[mat-button] {
+  padding-inline: 0;
+}
+
+@media (max-width: 840px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .left {
+    padding-top: 0;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+
+  .actions a[mat-button] {
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions a[mat-button] {
+    margin-right: 0;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
