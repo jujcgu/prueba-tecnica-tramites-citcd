@@ -1,44 +1,80 @@
 package com.citcd.demo.catalogos.tipotramite.models;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "tipo_tramite_codigo_key", columnNames = {
-        "codigo" }))
-@Data
+@Table(name = "tipo_tramite", schema = "public", uniqueConstraints = @UniqueConstraint(name = "tipo_tramite_codigo_key", columnNames = "codigo"))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 public class TipoTramite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Pattern(regexp = "^[a-z0-9_.]+$", message = "El código solo permite minúsculas, números, _ y .")
+    @Column(name = "codigo", nullable = false)
     private String codigo;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Column(name = "nombre", nullable = false)
     private String nombre;
 
+    @Column(name = "descripcion")
     private String descripcion;
 
-    @Column(nullable = false)
-    private Boolean esActivo;
+    @Column(name = "es_activo", nullable = false)
+    private boolean esActivo;
 
-    @Column(nullable = false)
-    private LocalDate creadoEn;
+    @Column(name = "creado_en", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime creadoEn;
 
-    private LocalDate actualizadoEn;
+    @Column(name = "actualizado_en", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime actualizadoEn;
+
+    @PrePersist
+    void prePersist() {
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        if (creadoEn == null)
+            creadoEn = now;
+        if (actualizadoEn == null)
+            actualizadoEn = now;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+    }
 
     public boolean esActivo() {
         return this.esActivo;
     }
-
 }
