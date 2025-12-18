@@ -102,6 +102,27 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "listarRequisitos",
+          "id": "fc20678c-d79c-4484-9af6-dba99a8f6eae",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tipos-tramite/1/requisitos-documentales",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tipos-tramite",
+                "1",
+                "requisitos-documentales"
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "id": "c09dfbb0-531a-4496-8a15-449b2363cfe9"
