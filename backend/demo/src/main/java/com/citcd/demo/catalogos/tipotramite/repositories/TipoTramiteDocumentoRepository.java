@@ -11,20 +11,12 @@ import com.citcd.demo.catalogos.tipotramite.models.TipoTramiteDocumentoId;
 
 public interface TipoTramiteDocumentoRepository extends JpaRepository<TipoTramiteDocumento, TipoTramiteDocumentoId> {
 
-	boolean existsByTipoTramiteId_IdAndTipoDocumentoId_Id(Long tipoTramiteId, Long tipoDocumentoId);
-
-	List<TipoTramiteDocumento> findByTipoTramiteId_IdAndEsObligatorioTrueOrderByOrdenAsc(Long tipoTramiteId);
-
-	List<TipoTramiteDocumento> findByTipoTramiteId_IdOrderByOrdenAsc(Long tipoTramiteId);
-
 	@Query("""
 			    select ttd
 			    from TipoTramiteDocumento ttd
-			    join fetch ttd.tipoDocumentoId td
-			    where ttd.tipoTramiteId.id = :tipoTramiteId
-			      and td.esActivo = true
-			    order by ttd.orden asc, td.id asc
+			    join fetch ttd.tipoDocumento td
+			    where ttd.tipoTramite.id = :tipoTramiteId
+			    order by coalesce(ttd.orden, 999999), td.nombre
 			""")
-	List<TipoTramiteDocumento> findRequisitosActivos(@Param("tipoTramiteId") long tipoTramiteId);
-
+	List<TipoTramiteDocumento> findRequeridosByTipoTramiteId(@Param("tipoTramiteId") Long tipoTramiteId);
 }

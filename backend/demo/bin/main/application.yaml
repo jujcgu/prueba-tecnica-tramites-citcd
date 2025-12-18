@@ -10,6 +10,7 @@ spring:
   config:
     import:
     - "optional:classpath:jwt.yaml"
+    - "optional:classpath:storage.yaml"
   mvc:
     problemdetails:
       enabled: true
