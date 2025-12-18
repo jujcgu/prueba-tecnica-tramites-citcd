@@ -30,7 +30,6 @@ import com.citcd.demo.catalogos.tipotramite.models.TipoTramite;
 import com.citcd.demo.catalogos.tipotramite.models.TipoTramiteDocumento;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteDocumentoRepository;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteRepository;
-import com.citcd.demo.seguimiento.model.enums.TipoEvento;
 import com.citcd.demo.seguimiento.services.SeguimientoService;
 import com.citcd.demo.storage.StorageService;
 import com.citcd.demo.tramite.api.dto.RadicarAdjuntoRequest;
@@ -134,7 +133,7 @@ public class RadicacionTramiteService {
         }
         adjuntos = adjuntoRepository.saveAll(adjuntos);
 
-        seguimientoService.registrar(tramite, usuario, TipoEvento.CREACION, null, EstadoTramite.RADICADO);
+        seguimientoService.registrarCreacion(tramite, usuario);
 
         List<RadicarTramiteResponse.AdjuntoResponse> adjResp = adjuntos.stream()
                 .map(x -> new RadicarTramiteResponse.AdjuntoResponse(

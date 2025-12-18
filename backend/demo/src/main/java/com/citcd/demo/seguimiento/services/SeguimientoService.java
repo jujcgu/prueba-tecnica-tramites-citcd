@@ -1,12 +1,12 @@
 package com.citcd.demo.seguimiento.services;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.citcd.demo.auth.model.Usuario;
+import com.citcd.demo.seguimiento.dtos.SeguimientoResponseDTO;
 import com.citcd.demo.seguimiento.model.Seguimiento;
 import com.citcd.demo.seguimiento.model.enums.TipoEvento;
 import com.citcd.demo.seguimiento.repositories.SeguimientoRepository;
@@ -16,25 +16,58 @@ import com.citcd.demo.tramite.models.enums.EstadoTramite;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class SeguimientoService {
 
     private final SeguimientoRepository seguimientoRepository;
 
-    public void registrar(Tramite tramite,
-            Usuario actor,
-            TipoEvento tipoEvento,
-            EstadoTramite ultimoEstado,
-            EstadoTramite nuevoEstado) {
+    @Transactional(readOnly = true)
+    public List<SeguimientoResponseDTO> listarPorTramiteId(Long tramiteId) {
+        if (tramiteId == null)
+            throw new IllegalArgumentException("tramiteId es requerido");
 
-        Seguimiento seg = new Seguimiento();
-        seg.setTramiteId(tramite);
-        seg.setCreadoPor(actor);
-        seg.setTipoEvento(tipoEvento);
-        seg.setUltimoEstado(ultimoEstado);
-        seg.setNuevoEstado(nuevoEstado);
-        seg.setCreadoEn(LocalDate.now(ZoneOffset.UTC));
-        seguimientoRepository.save(seg);
+        var rows = seguimientoRepository.findByTramiteId(tramiteId);
+
+        return rows.stream()
+                .map(p -> new SeguimientoResponseDTO(
+                        p.getCreadoEn(),
+                        p.getCreadoPorEmail(),
+                        p.getTipoEvento(),
+                        p.getUltimoEstado(),
+                        p.getNuevoEstado()))
+                .toList();
     }
+
+    public void registrarCreacion(Tramite tramite, Usuario actor) {
+        Seguimiento s = base(tramite, actor, TipoEvento.CREACION);
+        s.setNuevoEstado(EstadoTramite.RADICADO);
+        seguimientoRepository.save(s);
+    }
+
+    @Transactional
+    public void registrarCambioEstado(Tramite tramite, Usuario actor, EstadoTramite nuevo) {
+        Seguimiento s = base(tramite, actor, TipoEvento.CAMBIO_ESTADO);
+        s.setNuevoEstado(nuevo);
+        seguimientoRepository.save(s);
+    }
+
+    @Transactional
+    public void registrarComentario(Tramite tramite, Usuario actor, String comentario) {
+        String c = comentario == null ? "" : comentario.trim();
+        if (c.isBlank())
+            throw new IllegalArgumentException("El comentario no puede ser vacío");
+
+        Seguimiento s = base(tramite, actor, TipoEvento.COMENTARIO);
+        s.setComentario(c);
+        seguimientoRepository.save(s);
+    }
+
+    private static Seguimiento base(Tramite tramite, Usuario actor, TipoEvento tipoEvento) {
+        Seguimiento s = new Seguimiento();
+        s.setTramite(tramite);
+        s.setCreadoPor(actor);
+        s.setTipoEvento(tipoEvento);
+        return s;
+    }
+
 }
