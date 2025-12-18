@@ -73,7 +73,7 @@ public class FileSystemStorageService implements StorageService {
 
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
 			try (InputStream is = file.getInputStream(); DigestInputStream dis = new DigestInputStream(is, md)) {
-				Files.copy(dis, destinationFile); // no overwrite
+				Files.copy(dis, destinationFile);
 			}
 
 			String sha256 = toHex(md.digest());

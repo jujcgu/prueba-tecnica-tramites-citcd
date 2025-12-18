@@ -6,8 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,9 +30,8 @@ import com.citcd.demo.catalogos.tipotramite.models.TipoTramite;
 import com.citcd.demo.catalogos.tipotramite.models.TipoTramiteDocumento;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteDocumentoRepository;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteRepository;
-import com.citcd.demo.seguimiento.model.Seguimiento;
 import com.citcd.demo.seguimiento.model.enums.TipoEvento;
-import com.citcd.demo.seguimiento.repositories.SeguimientoRepository;
+import com.citcd.demo.seguimiento.services.SeguimientoService;
 import com.citcd.demo.storage.StorageService;
 import com.citcd.demo.tramite.api.dto.RadicarAdjuntoRequest;
 import com.citcd.demo.tramite.api.dto.RadicarTramiteRequest;
@@ -47,6 +44,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class RadicacionTramiteService {
 
@@ -55,7 +53,7 @@ public class RadicacionTramiteService {
     private final TipoDocumentoRepository tipoDocumentoRepository;
     private final TipoTramiteDocumentoRepository tipoTramiteDocumentoRepository;
     private final AdjuntoRepository adjuntoRepository;
-    private final SeguimientoRepository seguimientoRepository;
+    private final SeguimientoService seguimientoService;
     private final UserAuthenticatedService authenticatedService;
     private final StorageService storageService;
     private final EntityManager entityManager;
@@ -63,7 +61,6 @@ public class RadicacionTramiteService {
     private record FileMeta(long sizeBytes, String mimeType, String sha256) {
     }
 
-    @Transactional
     public RadicarTramiteResponse radicar(RadicarTramiteRequest req) {
         Usuario usuario = authenticatedService.usuarioAutenticado();
 
@@ -80,19 +77,15 @@ public class RadicacionTramiteService {
 
         List<RadicarAdjuntoRequest> adjuntosReq = req.adjuntos() == null ? List.of() : req.adjuntos();
 
-        // reglas por tipoDoc
         List<TipoTramiteDocumento> reglas = tipoTramiteDocumentoRepository
                 .findRequeridosByTipoTramiteId(tipoTramite.getId());
         Map<Long, TipoTramiteDocumento> reglaPorTipoDoc = reglas.stream()
                 .collect(Collectors.toMap(r -> r.getTipoDocumento().getId(), r -> r, (a, b) -> a, LinkedHashMap::new));
 
-        // meta de archivos (y validación: existe en FS)
         Map<String, FileMeta> metaPorStorageKey = cargarMetaArchivos(adjuntosReq);
 
-        // validaciones contra reglas (min/max + mime + tamaño)
         validarAdjuntos(adjuntosReq, reglaPorTipoDoc, metaPorStorageKey);
 
-        // Crear Tramite (default RADICADO) :contentReference[oaicite:6]{index=6}
         Tramite tramite = Tramite.builder()
                 .radicadoPor(usuario)
                 .tipoTramite(tipoTramite)
@@ -117,6 +110,10 @@ public class RadicacionTramiteService {
             }
 
             FileMeta meta = metaPorStorageKey.get(storageKey);
+            if (meta == null) {
+                throw new IllegalArgumentException("No existe metadata para storageKey=" + storageKey
+                        + " (¿archivo no subido o clave incorrecta?)");
+            }
 
             Adjunto adj = Adjunto.builder()
                     .tramite(tramite)
@@ -137,25 +134,13 @@ public class RadicacionTramiteService {
         }
         adjuntos = adjuntoRepository.saveAll(adjuntos);
 
-        Seguimiento seg = new Seguimiento();
-        seg.setTramiteId(tramite);
-        seg.setCreadoPor(usuario);
-        seg.setTipoEvento(TipoEvento.CREACION);
-        seg.setUltimoEstado(null);
-        seg.setNuevoEstado(EstadoTramite.RADICADO);
-        seg.setCreadoEn(LocalDate.now(ZoneOffset.UTC));
-        seguimientoRepository.save(seg);
+        seguimientoService.registrar(tramite, usuario, TipoEvento.CREACION, null, EstadoTramite.RADICADO);
 
         List<RadicarTramiteResponse.AdjuntoResponse> adjResp = adjuntos.stream()
                 .map(x -> new RadicarTramiteResponse.AdjuntoResponse(
-                        x.getId(),
-                        x.getTipoDocumento().getId(),
-                        x.getNombreArchivo(),
-                        x.getStorageKey(),
-                        x.getMimeType(),
-                        x.getTamanoBytes(),
-                        x.getSha256()))
-                .toList();
+                        x.getId(), x.getTipoDocumento().getId(), x.getNombreArchivo(),
+                        x.getStorageKey(), x.getMimeType(), x.getTamanoBytes(), x.getSha256()))
+                .collect(Collectors.toList());
 
         return new RadicarTramiteResponse(
                 tramite.getId(),

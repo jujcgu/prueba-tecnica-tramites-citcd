@@ -26,45 +26,46 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdjuntoUploadController {
 
-    private final StorageService storageService;
+        private final StorageService storageService;
 
-    public record UploadAdjuntoResponse(
-            String storageKey,
-            String originalFilename,
-            long sizeBytes,
-            String mimeType,
-            String sha256,
-            String downloadUrl) {
-    }
-
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UploadAdjuntoResponse upload(@RequestPart("file") MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new ResponseStatusException(BAD_REQUEST, "Debe enviar un archivo no vacío");
+        public record UploadAdjuntoResponse(
+                        String storageKey,
+                        String originalFilename,
+                        long sizeBytes,
+                        String mimeType,
+                        String sha256,
+                        String downloadUrl) {
         }
 
-        StoredFileInfo info = storageService.storeAndGetInfo(file);
+        @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public UploadAdjuntoResponse upload(@RequestPart("file") MultipartFile file) {
+                if (file == null || file.isEmpty()) {
+                        throw new ResponseStatusException(BAD_REQUEST, "Debe enviar un archivo no vacío");
+                }
 
-        String downloadUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/adjuntos/files/")
-                .path(info.storageKey())
-                .toUriString();
+                StoredFileInfo info = storageService.storeAndGetInfo(file);
 
-        return new UploadAdjuntoResponse(
-                info.storageKey(),
-                info.originalFilename(),
-                info.sizeBytes(),
-                info.mimeType(),
-                info.sha256(),
-                downloadUrl);
-    }
+                String downloadUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                                .path("/api/adjuntos/files/")
+                                .path(info.storageKey())
+                                .toUriString();
 
-    @GetMapping("/files/{storageKey:.+}")
-    public ResponseEntity<Resource> download(@PathVariable String storageKey) {
-        Resource resource = storageService.loadAsResource(storageKey);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
-    }
+                return new UploadAdjuntoResponse(
+                                info.storageKey(),
+                                info.originalFilename(),
+                                info.sizeBytes(),
+                                info.mimeType(),
+                                info.sha256(),
+                                downloadUrl);
+        }
+
+        @GetMapping("/files/{storageKey:.+}")
+        public ResponseEntity<Resource> download(@PathVariable("storageKey") String storageKey) {
+                Resource resource = storageService.loadAsResource(storageKey);
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                "attachment; filename=\"" + resource.getFilename() + "\"")
+                                .body(resource);
+        }
+
 }

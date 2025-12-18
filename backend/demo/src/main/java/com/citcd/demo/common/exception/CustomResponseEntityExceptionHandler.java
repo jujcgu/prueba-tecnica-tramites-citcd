@@ -147,22 +147,6 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         return ResponseEntity.status(status).headers(headers).body(pd);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ProblemDetail> handleUnexpected(
-            Exception ex, HttpServletRequest req) {
-
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        pd.setTitle("Unexpected error");
-        pd.setType(TYPE_INTERNAL);
-        pd.setDetail("An unexpected error occurred.");
-        pd.setProperty("timestamp", OffsetDateTime.now().toString());
-        pd.setInstance(URI.create(req.getRequestURI()));
-
-        return ResponseEntity.status(pd.getStatus())
-                .contentType(PROBLEM_JSON)
-                .body(pd);
-    }
-
     private static void enrich(ProblemDetail pd, WebRequest request) {
         pd.setProperty("timestamp", OffsetDateTime.now().toString());
         if (pd.getInstance() == null && request instanceof ServletWebRequest swr) {
