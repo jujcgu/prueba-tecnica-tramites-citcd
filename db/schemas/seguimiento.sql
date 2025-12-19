@@ -12,16 +12,11 @@ CREATE TABLE IF NOT EXISTS public.seguimiento
     nuevo_estado character varying COLLATE pg_catalog."default",
     creado_en timestamp with time zone NOT NULL DEFAULT now(),
     comentario text COLLATE pg_catalog."default",
-    asignado_de bigint,
     asignado_a bigint,
     es_reciente boolean,
     comentario_tsv tsvector GENERATED ALWAYS AS (to_tsvector('spanish'::regconfig, COALESCE(comentario, ''::text))) STORED,
     CONSTRAINT seguimiento_pkey PRIMARY KEY (id),
     CONSTRAINT seguimiento_asignado_a_fkey FOREIGN KEY (asignado_a)
-        REFERENCES public.usuario (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT seguimiento_asignado_de_fkey FOREIGN KEY (asignado_de)
         REFERENCES public.usuario (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
@@ -39,7 +34,6 @@ CREATE TABLE IF NOT EXISTS public.seguimiento
     CONSTRAINT seguimiento_estado_required_chk CHECK (tipo_evento::text <> 'CAMBIO_ESTADO'::text OR nuevo_estado IS NOT NULL),
     CONSTRAINT seguimiento_estado_valido_chk CHECK (tipo_evento::text <> 'CAMBIO_ESTADO'::text OR (nuevo_estado::text = ANY (ARRAY['RADICADO'::character varying, 'EN_PROCESO'::character varying, 'FINALIZADO'::character varying, 'RECHAZADO'::character varying]::text[]))),
     CONSTRAINT seguimiento_comentario_not_blank_chk CHECK (tipo_evento::text <> 'COMENTARIO'::text OR btrim(COALESCE(comentario, ''::text)) <> ''::text),
-    CONSTRAINT seguimiento_asignacion_diff_chk CHECK (tipo_evento::text <> 'ASIGNACION'::text OR asignado_a IS NULL OR asignado_de IS NULL OR asignado_a <> asignado_de),
     CONSTRAINT seg_no_state_when_not_change_chk CHECK (tipo_evento::text = 'CAMBIO_ESTADO'::text OR nuevo_estado IS NULL AND ultimo_estado IS NULL)
 )
 
@@ -64,15 +58,6 @@ CREATE INDEX IF NOT EXISTS ix_seg_asignacion_tram
 CREATE INDEX IF NOT EXISTS ix_seg_asignado_a
     ON public.seguimiento USING btree
     (asignado_a ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ix_seg_asignado_de
-
--- DROP INDEX IF EXISTS public.ix_seg_asignado_de;
-
-CREATE INDEX IF NOT EXISTS ix_seg_asignado_de
-    ON public.seguimiento USING btree
-    (asignado_de ASC NULLS LAST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
 -- Index: ix_seg_comentario_tsv
@@ -151,16 +136,6 @@ CREATE OR REPLACE TRIGGER trg_enforce_transicion_estado
     ON public.seguimiento
     FOR EACH ROW
     EXECUTE FUNCTION public.enforce_transicion_estado();
-
--- Trigger: trg_fill_asignado_de
-
--- DROP TRIGGER IF EXISTS trg_fill_asignado_de ON public.seguimiento;
-
-CREATE OR REPLACE TRIGGER trg_fill_asignado_de
-    BEFORE INSERT
-    ON public.seguimiento
-    FOR EACH ROW
-    EXECUTE FUNCTION public.fill_asignado_de_if_null();
 
 -- Trigger: trg_seg_read_only
 
