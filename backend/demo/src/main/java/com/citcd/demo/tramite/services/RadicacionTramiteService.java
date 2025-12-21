@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,31 +16,36 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.citcd.demo.adjunto.model.Adjunto;
-import com.citcd.demo.adjunto.model.enums.StorageBackend;
-import com.citcd.demo.adjunto.model.enums.VirusScanStatus;
+import com.citcd.demo.adjunto.model.enums.EstadoAnalisisVirus;
+import com.citcd.demo.adjunto.model.enums.ServicioAlmacenamiento;
 import com.citcd.demo.adjunto.repositories.AdjuntoRepository;
 import com.citcd.demo.auth.model.Usuario;
-import com.citcd.demo.auth.services.UserAuthenticatedService;
+import com.citcd.demo.auth.repositories.UsuarioRepository;
 import com.citcd.demo.catalogos.tipodocumento.model.TipoDocumento;
 import com.citcd.demo.catalogos.tipodocumento.repositories.TipoDocumentoRepository;
 import com.citcd.demo.catalogos.tipotramite.models.TipoTramite;
 import com.citcd.demo.catalogos.tipotramite.models.TipoTramiteDocumento;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteDocumentoRepository;
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteRepository;
-import com.citcd.demo.seguimiento.services.SeguimientoService;
+import com.citcd.demo.seguimiento.model.Seguimiento;
+import com.citcd.demo.seguimiento.model.enums.TipoEvento;
+import com.citcd.demo.seguimiento.repositories.SeguimientoRepository;
 import com.citcd.demo.storage.StorageService;
+import com.citcd.demo.tramite.api.dto.MetadatosArchivo;
 import com.citcd.demo.tramite.api.dto.RadicarAdjuntoRequest;
 import com.citcd.demo.tramite.api.dto.RadicarTramiteRequest;
-import com.citcd.demo.tramite.api.dto.RadicarTramiteResponse;
 import com.citcd.demo.tramite.models.Tramite;
 import com.citcd.demo.tramite.models.enums.EstadoTramite;
 import com.citcd.demo.tramite.repositories.TramiteRepository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -47,226 +53,217 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RadicacionTramiteService {
 
-    private final TramiteRepository tramiteRepository;
-    private final TipoTramiteRepository tipoTramiteRepository;
-    private final TipoDocumentoRepository tipoDocumentoRepository;
-    private final TipoTramiteDocumentoRepository tipoTramiteDocumentoRepository;
-    private final AdjuntoRepository adjuntoRepository;
-    private final SeguimientoService seguimientoService;
-    private final UserAuthenticatedService authenticatedService;
-    private final StorageService storageService;
-    private final EntityManager entityManager;
+	private final TramiteRepository tramiteRepository;
+	private final TipoTramiteRepository tipoTramiteRepository;
+	private final TipoDocumentoRepository tipoDocumentoRepository;
+	private final TipoTramiteDocumentoRepository tipoTramiteDocumentoRepository;
+	private final AdjuntoRepository adjuntoRepository;
+	private final StorageService storageService;
+	private final EntityManager entityManager;
+	private final UsuarioRepository usuarioRepository;
+	private final SeguimientoRepository seguimientoRepository;
 
-    private record FileMeta(long sizeBytes, String mimeType, String sha256) {
-    }
+	private Usuario usuarioAutenticado() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String email = auth.getName();
+		return usuarioRepository.findByEmail(email)
+				.orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con email " + email));
+	}
 
-    public RadicarTramiteResponse radicar(RadicarTramiteRequest req) {
-        Usuario usuario = authenticatedService.usuarioAutenticado();
+	public Tramite radicar(RadicarTramiteRequest req) {
 
-        TipoTramite tipoTramite = tipoTramiteRepository.findById(req.tipoTramiteId())
-                .orElseThrow(() -> new IllegalArgumentException("TipoTramite no existe: " + req.tipoTramiteId()));
+		Usuario actor = usuarioAutenticado();
 
-        if (!tipoTramite.esActivo()) {
-            throw new IllegalArgumentException("El TipoTramite está inactivo: " + tipoTramite.getId());
-        }
+		TipoTramite tipoTramite = tipoTramiteRepository.findById(req.tipoTramiteId())
+				.orElseThrow(() -> new IllegalArgumentException("TipoTramite no existe: " + req.tipoTramiteId()));
 
-        String comentario = (req.comentario() == null) ? "" : req.comentario().trim();
-        if (comentario.isBlank())
-            throw new IllegalArgumentException("El comentario/descripción no puede estar vacío");
+		if (!tipoTramite.esActivo()) {
+			throw new IllegalArgumentException("El TipoTramite está inactivo: " + tipoTramite.getId());
+		}
 
-        List<RadicarAdjuntoRequest> adjuntosReq = req.adjuntos() == null ? List.of() : req.adjuntos();
+		String comentario = (req.comentario() == null) ? "" : req.comentario().trim();
+		if (comentario.isBlank())
+			throw new IllegalArgumentException("El comentario/descripción no puede estar vacío");
 
-        List<TipoTramiteDocumento> reglas = tipoTramiteDocumentoRepository
-                .findRequeridosByTipoTramiteId(tipoTramite.getId());
-        Map<Long, TipoTramiteDocumento> reglaPorTipoDoc = reglas.stream()
-                .collect(Collectors.toMap(r -> r.getTipoDocumento().getId(), r -> r, (a, b) -> a, LinkedHashMap::new));
+		List<RadicarAdjuntoRequest> adjuntosReq = req.adjuntos() == null ? List.of() : req.adjuntos();
 
-        Map<String, FileMeta> metaPorStorageKey = cargarMetaArchivos(adjuntosReq);
+		List<TipoTramiteDocumento> reglas = tipoTramiteDocumentoRepository
+				.findRequeridosByTipoTramiteId(tipoTramite.getId());
 
-        validarAdjuntos(adjuntosReq, reglaPorTipoDoc, metaPorStorageKey);
+		Map<Long, TipoTramiteDocumento> reglaPorTipoDoc = reglas.stream()
+				.collect(Collectors.toMap(r -> r.getTipoDocumento().getId(), r -> r, (a, b) -> a, LinkedHashMap::new));
 
-        Tramite tramite = Tramite.builder()
-                .radicadoPor(usuario)
-                .tipoTramite(tipoTramite)
-                .comentario(comentario)
-                .estado(EstadoTramite.RADICADO)
-                .build();
+		Map<String, MetadatosArchivo> metadatosPorIdentificadorAlmacenamiento = cargarMetadatosArchivos(adjuntosReq);
 
-        tramite = tramiteRepository.save(tramite);
-        tramiteRepository.flush();
-        entityManager.refresh(tramite);
+		validarAdjuntos(adjuntosReq, reglaPorTipoDoc, metadatosPorIdentificadorAlmacenamiento);
 
-        List<Adjunto> adjuntos = new ArrayList<>();
-        for (RadicarAdjuntoRequest a : adjuntosReq) {
+		Tramite tramite = Tramite.builder().radicadoPor(actor).tipoTramite(tipoTramite).comentario(comentario)
+				.estado(EstadoTramite.RADICADO).build();
 
-            TipoDocumento td = tipoDocumentoRepository.findById(a.tipoDocumentoId())
-                    .orElseThrow(() -> new IllegalArgumentException("TipoDocumento no existe: " + a.tipoDocumentoId()));
+		Tramite savedTramite = tramiteRepository.save(tramite);
+		tramiteRepository.flush();
+		entityManager.refresh(tramite);
 
-            String storageKey = a.storageKey().trim();
+		List<Adjunto> adjuntos = new ArrayList<>();
 
-            if (adjuntoRepository.existsByStorageKey(storageKey)) {
-                throw new IllegalArgumentException("Ese storageKey ya fue usado en la BD: " + storageKey);
-            }
+		for (RadicarAdjuntoRequest a : adjuntosReq) {
 
-            FileMeta meta = metaPorStorageKey.get(storageKey);
-            if (meta == null) {
-                throw new IllegalArgumentException("No existe metadata para storageKey=" + storageKey
-                        + " (¿archivo no subido o clave incorrecta?)");
-            }
+			TipoDocumento td = tipoDocumentoRepository.findById(a.tipoDocumentoId())
+					.orElseThrow(() -> new IllegalArgumentException("TipoDocumento no existe: " + a.tipoDocumentoId()));
 
-            Adjunto adj = Adjunto.builder()
-                    .tramite(tramite)
-                    .tipoDocumento(td)
-                    .nombreArchivo(a.nombreArchivo().trim())
-                    .subidoPor(usuario)
-                    .storageBackend(StorageBackend.FS)
-                    .storageKey(storageKey)
-                    .mimeType(meta.mimeType())
-                    .tamanoBytes(meta.sizeBytes())
-                    .sha256(meta.sha256())
-                    .version(1)
-                    .virusScanStatus(VirusScanStatus.PENDING)
-                    .quarantine(false)
-                    .build();
+			String identificadorAlmacenamiento = a.identificadorAlmacenamiento().trim();
 
-            adjuntos.add(adj);
-        }
-        adjuntos = adjuntoRepository.saveAll(adjuntos);
+			if (adjuntoRepository.existsByIdentificadorAlmacenamiento(identificadorAlmacenamiento)) {
+				throw new IllegalArgumentException(
+						"Ese identificador de almacenamiento ya fue usado en la BD: " + identificadorAlmacenamiento);
+			}
 
-        seguimientoService.registrarCreacion(tramite, usuario);
+			MetadatosArchivo meta = metadatosPorIdentificadorAlmacenamiento.get(identificadorAlmacenamiento);
+			if (meta == null) {
+				throw new IllegalArgumentException("No existe metadata para ese identificador de almacenamiento="
+						+ identificadorAlmacenamiento + " (¿archivo no subido o clave incorrecta?)");
+			}
 
-        List<RadicarTramiteResponse.AdjuntoResponse> adjResp = adjuntos.stream()
-                .map(x -> new RadicarTramiteResponse.AdjuntoResponse(
-                        x.getId(), x.getTipoDocumento().getId(), x.getNombreArchivo(),
-                        x.getStorageKey(), x.getMimeType(), x.getTamanoBytes(), x.getSha256()))
-                .collect(Collectors.toList());
+			Adjunto adj = Adjunto.builder().tramite(tramite).tipoDocumento(td).nombreArchivo(a.nombreArchivo().trim())
+					.subidoPor(actor).servicioAlmacenamiento(ServicioAlmacenamiento.LOCAL)
+					.identificadorAlmacenamiento(identificadorAlmacenamiento).tipoMime(meta.tipoMime())
+					.tamanoBytes(meta.sizeBytes()).sha256(meta.sha256())
+					.estadoAnalisisVirus(EstadoAnalisisVirus.PENDIENTE)
+					.estaCuarentenado(false).build();
 
-        return new RadicarTramiteResponse(
-                tramite.getId(),
-                tramite.getNumeroRadicado(),
-                tramite.getEstado(),
-                tramite.getTipoTramite().getId(),
-                tramite.getComentario(),
-                tramite.getCreadoEn(),
-                adjResp);
-    }
+			adjuntos.add(adj);
+		}
 
-    private Map<String, FileMeta> cargarMetaArchivos(List<RadicarAdjuntoRequest> adjuntosReq) {
-        Map<String, FileMeta> meta = new HashMap<>();
-        Set<String> seen = new HashSet<>();
+		adjuntos = adjuntoRepository.saveAll(adjuntos);
 
-        for (RadicarAdjuntoRequest a : adjuntosReq) {
-            String key = a.storageKey().trim();
-            if (!seen.add(key)) {
-                throw new IllegalArgumentException("storageKey repetido en la solicitud: " + key);
-            }
+		Seguimiento s = new Seguimiento();
+		s.setTramite(savedTramite);
+		s.setCreadoPor(actor);
+		s.setTipoEvento(TipoEvento.CREACION);
+		s.setUltimoEstado(null);
+		s.setNuevoEstado(EstadoTramite.RADICADO);
+		s.setComentario(null);
+		s.setAsignadoA(null);
+		s.setCreadoEn(OffsetDateTime.now());
+		seguimientoRepository.save(s);
 
-            Path path = storageService.load(key);
-            if (path == null || !Files.exists(path)) {
-                throw new IllegalArgumentException("No existe el archivo para storageKey: " + key);
-            }
+		return savedTramite;
 
-            try {
-                long size = Files.size(path);
+	}
 
-                if (a.tamanoBytes() != null && a.tamanoBytes() >= 0 && a.tamanoBytes() != size) {
-                    throw new IllegalArgumentException(
-                            "tamanoBytes no coincide para " + key + ". enviado=" + a.tamanoBytes() + " real=" + size);
-                }
+	private Map<String, MetadatosArchivo> cargarMetadatosArchivos(List<RadicarAdjuntoRequest> adjuntosReq) {
+		Map<String, MetadatosArchivo> mapMetadatosArchivo = new HashMap<>();
+		Set<String> seen = new HashSet<>();
 
-                String mime = normalizeMime(a.mimeType(), path, key);
+		for (RadicarAdjuntoRequest a : adjuntosReq) {
+			String key = a.identificadorAlmacenamiento().trim();
+			if (!seen.add(key)) {
+				throw new IllegalArgumentException("identificadorAlmacenamiento repetido en la solicitud: " + key);
+			}
 
-                String sha = (a.sha256() != null && !a.sha256().isBlank())
-                        ? a.sha256().trim().toLowerCase()
-                        : sha256File(path);
+			Path path = storageService.load(key);
+			if (path == null || !Files.exists(path)) {
+				throw new IllegalArgumentException("No existe el archivo para identificadorAlmacenamiento: " + key);
+			}
 
-                meta.put(key, new FileMeta(size, mime, sha));
+			try {
+				long size = Files.size(path);
 
-            } catch (IllegalArgumentException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IllegalArgumentException(
-                        "No se pudo leer metadata del archivo " + key + ": " + e.getMessage());
-            }
-        }
-        return meta;
-    }
+				if (a.tamanoBytes() != null && a.tamanoBytes() >= 0 && a.tamanoBytes() != size) {
+					throw new IllegalArgumentException(
+							"tamanoBytes no coincide para " + key + ". enviado=" + a.tamanoBytes() + " real=" + size);
+				}
 
-    private static String normalizeMime(String requestMime, Path file, String nameFallback) {
-        String mime = requestMime == null ? "" : requestMime.trim();
-        if (mime.isBlank() || "application/octet-stream".equalsIgnoreCase(mime)) {
-            try {
-                String probed = Files.probeContentType(file);
-                if (probed != null && !probed.isBlank())
-                    return probed;
-            } catch (Exception ignored) {
-            }
-            String guessed = URLConnection.guessContentTypeFromName(nameFallback);
-            return (guessed == null || guessed.isBlank()) ? "application/octet-stream" : guessed;
-        }
-        return mime;
-    }
+				String mime = normalizeMime(a.tipoMime(), path, key);
 
-    private static String sha256File(Path path) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        try (InputStream is = Files.newInputStream(path);
-                DigestInputStream dis = new DigestInputStream(is, md)) {
-            dis.transferTo(java.io.OutputStream.nullOutputStream());
-        }
-        byte[] hash = md.digest();
-        StringBuilder sb = new StringBuilder(hash.length * 2);
-        for (byte b : hash)
-            sb.append(String.format("%02x", b));
-        return sb.toString();
-    }
+				String sha = (a.sha256() != null && !a.sha256().isBlank()) ? a.sha256().trim().toLowerCase()
+						: sha256File(path);
 
-    private void validarAdjuntos(List<RadicarAdjuntoRequest> adjuntosReq,
-            Map<Long, TipoTramiteDocumento> reglaPorTipoDoc,
-            Map<String, FileMeta> metaPorStorageKey) {
+				mapMetadatosArchivo.put(key, new MetadatosArchivo(size, mime, sha));
 
-        for (RadicarAdjuntoRequest a : adjuntosReq) {
-            if (!reglaPorTipoDoc.containsKey(a.tipoDocumentoId())) {
-                throw new IllegalArgumentException("El tipoDocumentoId=" + a.tipoDocumentoId()
-                        + " no está configurado para este TipoTramite");
-            }
-        }
+			} catch (IllegalArgumentException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						"No se pudo leer metadata del archivo " + key + ": " + e.getMessage());
+			}
+		}
+		return mapMetadatosArchivo;
+	}
 
-        for (RadicarAdjuntoRequest a : adjuntosReq) {
-            TipoTramiteDocumento regla = reglaPorTipoDoc.get(a.tipoDocumentoId());
-            FileMeta meta = metaPorStorageKey.get(a.storageKey().trim());
+	private static String normalizeMime(String requestMime, Path file, String nameFallback) {
+		String mime = requestMime == null ? "" : requestMime.trim();
+		if (mime.isBlank() || "application/octet-stream".equalsIgnoreCase(mime)) {
+			try {
+				String probed = Files.probeContentType(file);
+				if (probed != null && !probed.isBlank())
+					return probed;
+			} catch (Exception ignored) {
+			}
+			String guessed = URLConnection.guessContentTypeFromName(nameFallback);
+			return (guessed == null || guessed.isBlank()) ? "application/octet-stream" : guessed;
+		}
+		return mime;
+	}
 
-            if (!regla.esMimePermitido(meta.mimeType())) {
-                throw new IllegalArgumentException("Mime no permitido para tipoDocumentoId=" + a.tipoDocumentoId()
-                        + ". Mime=" + meta.mimeType() + ". Permitidos=" + regla.getMimePermitidos());
-            }
+	private static String sha256File(Path path) throws Exception {
+		MessageDigest md = MessageDigest.getInstance("SHA-256");
+		try (InputStream is = Files.newInputStream(path); DigestInputStream dis = new DigestInputStream(is, md)) {
+			dis.transferTo(java.io.OutputStream.nullOutputStream());
+		}
+		byte[] hash = md.digest();
+		StringBuilder sb = new StringBuilder(hash.length * 2);
+		for (byte b : hash)
+			sb.append(String.format("%02x", b));
+		return sb.toString();
+	}
 
-            Integer maxMb = regla.getTamanoMaxMb();
-            if (maxMb != null && maxMb > 0) {
-                long maxBytes = (long) maxMb * 1024L * 1024L;
-                if (meta.sizeBytes() > maxBytes) {
-                    throw new IllegalArgumentException(
-                            "Archivo supera tamaño máximo para tipoDocumentoId=" + a.tipoDocumentoId()
-                                    + ". Max=" + maxMb + "MB, recibido=" + meta.sizeBytes() + " bytes");
-                }
-            }
-        }
+	private void validarAdjuntos(List<RadicarAdjuntoRequest> adjuntosReq,
+			Map<Long, TipoTramiteDocumento> reglaPorTipoDoc,
+			Map<String, MetadatosArchivo> metaPorIdentificadorAlmacenamiento) {
 
-        Map<Long, Long> conteo = adjuntosReq.stream()
-                .collect(Collectors.groupingBy(RadicarAdjuntoRequest::tipoDocumentoId, Collectors.counting()));
+		for (RadicarAdjuntoRequest a : adjuntosReq) {
+			if (!reglaPorTipoDoc.containsKey(a.tipoDocumentoId())) {
+				throw new IllegalArgumentException(
+						"El tipoDocumentoId=" + a.tipoDocumentoId() + " no está configurado para este TipoTramite");
+			}
+		}
 
-        for (var e : reglaPorTipoDoc.entrySet()) {
-            Long tipoDocId = e.getKey();
-            TipoTramiteDocumento regla = e.getValue();
-            long count = conteo.getOrDefault(tipoDocId, 0L);
+		for (RadicarAdjuntoRequest a : adjuntosReq) {
+			TipoTramiteDocumento regla = reglaPorTipoDoc.get(a.tipoDocumentoId());
+			MetadatosArchivo meta = metaPorIdentificadorAlmacenamiento.get(a.identificadorAlmacenamiento().trim());
 
-            if (count < regla.getCantidadMinima()) {
-                throw new IllegalArgumentException("Faltan adjuntos para tipoDocumentoId=" + tipoDocId
-                        + ". Min=" + regla.getCantidadMinima() + ", enviados=" + count);
-            }
-            if (regla.getCantidadMaxima() >= 0 && count > regla.getCantidadMaxima()) {
-                throw new IllegalArgumentException("Demasiados adjuntos para tipoDocumentoId=" + tipoDocId
-                        + ". Max=" + regla.getCantidadMaxima() + ", enviados=" + count);
-            }
-        }
-    }
+			if (!regla.esMimePermitido(meta.tipoMime())) {
+				throw new IllegalArgumentException("Mime no permitido para tipoDocumentoId=" + a.tipoDocumentoId()
+						+ ". Mime=" + meta.tipoMime() + ". Permitidos=" + regla.getMimePermitidos());
+			}
+
+			Integer maxMb = regla.getTamanoMaxMb();
+			if (maxMb != null && maxMb > 0) {
+				long maxBytes = (long) maxMb * 1024L * 1024L;
+				if (meta.sizeBytes() > maxBytes) {
+					throw new IllegalArgumentException("Archivo supera tamaño máximo para tipoDocumentoId="
+							+ a.tipoDocumentoId() + ". Max=" + maxMb + "MB, recibido=" + meta.sizeBytes() + " bytes");
+				}
+			}
+		}
+
+		Map<Long, Long> conteo = adjuntosReq.stream()
+				.collect(Collectors.groupingBy(RadicarAdjuntoRequest::tipoDocumentoId, Collectors.counting()));
+
+		for (var e : reglaPorTipoDoc.entrySet()) {
+			Long tipoDocId = e.getKey();
+			TipoTramiteDocumento regla = e.getValue();
+			long count = conteo.getOrDefault(tipoDocId, 0L);
+
+			if (count < regla.getCantidadMinima()) {
+				throw new IllegalArgumentException("Faltan adjuntos para tipoDocumentoId=" + tipoDocId + ". Min="
+						+ regla.getCantidadMinima() + ", enviados=" + count);
+			}
+			if (regla.getCantidadMaxima() >= 0 && count > regla.getCantidadMaxima()) {
+				throw new IllegalArgumentException("Demasiados adjuntos para tipoDocumentoId=" + tipoDocId + ". Max="
+						+ regla.getCantidadMaxima() + ", enviados=" + count);
+			}
+		}
+	}
 }

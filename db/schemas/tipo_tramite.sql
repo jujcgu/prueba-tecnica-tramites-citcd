@@ -9,8 +9,6 @@ CREATE TABLE IF NOT EXISTS public.tipo_tramite
     nombre character varying COLLATE pg_catalog."default" NOT NULL,
     descripcion character varying COLLATE pg_catalog."default",
     es_activo boolean NOT NULL DEFAULT true,
-    creado_en timestamp with time zone NOT NULL DEFAULT now(),
-    actualizado_en timestamp with time zone NOT NULL DEFAULT now(),
     CONSTRAINT tipo_tramite_pkey PRIMARY KEY (id),
     CONSTRAINT tipo_tramite_codigo_key UNIQUE (codigo),
     CONSTRAINT tipo_tramite_codigo_format_chk CHECK (codigo::text ~ '^[a-z0-9_.]+$'::text),
@@ -21,34 +19,24 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.tipo_tramite
     OWNER to demo;
--- Index: ix_tipo_tramite_activo
+-- Index: tipo_tramite_es_activo_index
 
--- DROP INDEX IF EXISTS public.ix_tipo_tramite_activo;
+-- DROP INDEX IF EXISTS public.tipo_tramite_es_activo_index;
 
-CREATE INDEX IF NOT EXISTS ix_tipo_tramite_activo
+CREATE INDEX IF NOT EXISTS tipo_tramite_es_activo_index
     ON public.tipo_tramite USING btree
     (es_activo ASC NULLS LAST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
--- Index: ux_tipo_tramite_nombre_canon
+-- Index: tipo_tramite_nombre_canon_index
 
--- DROP INDEX IF EXISTS public.ux_tipo_tramite_nombre_canon;
+-- DROP INDEX IF EXISTS public.tipo_tramite_nombre_canon_index;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_tipo_tramite_nombre_canon
+CREATE UNIQUE INDEX IF NOT EXISTS tipo_tramite_nombre_canon_index
     ON public.tipo_tramite USING btree
     (lower(btrim(nombre::text)) COLLATE pg_catalog."default" ASC NULLS LAST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
-
--- Trigger: set_updated_at_tipo_tramite
-
--- DROP TRIGGER IF EXISTS set_updated_at_tipo_tramite ON public.tipo_tramite;
-
-CREATE OR REPLACE TRIGGER set_updated_at_tipo_tramite
-    BEFORE UPDATE 
-    ON public.tipo_tramite
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_updated_at();
 
 -- Trigger: trg_norm_tipo_tramite_codigo
 

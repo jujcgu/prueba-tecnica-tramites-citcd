@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS public.seguimiento
     creado_en timestamp with time zone NOT NULL DEFAULT now(),
     comentario text COLLATE pg_catalog."default",
     asignado_a bigint,
-    es_reciente boolean,
     comentario_tsv tsvector GENERATED ALWAYS AS (to_tsvector('spanish'::regconfig, COALESCE(comentario, ''::text))) STORED,
     CONSTRAINT seguimiento_pkey PRIMARY KEY (id),
     CONSTRAINT seguimiento_asignado_a_fkey FOREIGN KEY (asignado_a)
@@ -27,142 +26,57 @@ CREATE TABLE IF NOT EXISTS public.seguimiento
     CONSTRAINT seguimiento_tramite_id_fkey FOREIGN KEY (tramite_id)
         REFERENCES public.tramite (id) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE CASCADE,
-    CONSTRAINT tipo_evento_nombre_chk CHECK (tipo_evento::text = ANY (ARRAY['COMENTARIO'::character varying, 'ASIGNACION'::character varying, 'CAMBIO_ESTADO'::character varying, 'CREACION'::character varying]::text[])),
-    CONSTRAINT seguimiento_comentario_chk CHECK (tipo_evento::text <> 'COMENTARIO'::text OR comentario IS NOT NULL),
-    CONSTRAINT seguimiento_asignacion_required_chk CHECK (tipo_evento::text <> 'ASIGNACION'::text OR asignado_a IS NOT NULL),
-    CONSTRAINT seguimiento_estado_required_chk CHECK (tipo_evento::text <> 'CAMBIO_ESTADO'::text OR nuevo_estado IS NOT NULL),
-    CONSTRAINT seguimiento_estado_valido_chk CHECK (tipo_evento::text <> 'CAMBIO_ESTADO'::text OR (nuevo_estado::text = ANY (ARRAY['RADICADO'::character varying, 'EN_PROCESO'::character varying, 'FINALIZADO'::character varying, 'RECHAZADO'::character varying]::text[]))),
-    CONSTRAINT seguimiento_comentario_not_blank_chk CHECK (tipo_evento::text <> 'COMENTARIO'::text OR btrim(COALESCE(comentario, ''::text)) <> ''::text),
-    CONSTRAINT seg_no_state_when_not_change_chk CHECK (tipo_evento::text = 'CAMBIO_ESTADO'::text OR nuevo_estado IS NULL AND ultimo_estado IS NULL)
+        ON DELETE CASCADE
 )
 
 TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.seguimiento
     OWNER to demo;
--- Index: ix_seg_asignacion_tram
+-- Index: seguimiento_asignado_a_creado_en_index
 
--- DROP INDEX IF EXISTS public.ix_seg_asignacion_tram;
+-- DROP INDEX IF EXISTS public.seguimiento_asignado_a_creado_en_index;
 
-CREATE INDEX IF NOT EXISTS ix_seg_asignacion_tram
+CREATE INDEX IF NOT EXISTS seguimiento_asignado_a_creado_en_index
+    ON public.seguimiento USING btree
+    (asignado_a ASC NULLS LAST, creado_en DESC NULLS FIRST)
+    WITH (fillfactor=100, deduplicate_items=True)
+    TABLESPACE pg_default;
+-- Index: seguimiento_creado_por_index
+
+-- DROP INDEX IF EXISTS public.seguimiento_creado_por_index;
+
+CREATE INDEX IF NOT EXISTS seguimiento_creado_por_index
+    ON public.seguimiento USING btree
+    (creado_por ASC NULLS LAST)
+    WITH (fillfactor=100, deduplicate_items=True)
+    TABLESPACE pg_default;
+-- Index: seguimiento_tramite_id_creado_en_asignacion_index
+
+-- DROP INDEX IF EXISTS public.seguimiento_tramite_id_creado_en_asignacion_index;
+
+CREATE INDEX IF NOT EXISTS seguimiento_tramite_id_creado_en_asignacion_index
     ON public.seguimiento USING btree
     (tramite_id ASC NULLS LAST, creado_en DESC NULLS FIRST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default
     WHERE tipo_evento::text = 'ASIGNACION'::text;
--- Index: ix_seg_asignado_a
+-- Index: seguimiento_tramite_id_creado_en_cambio_estado_index
 
--- DROP INDEX IF EXISTS public.ix_seg_asignado_a;
+-- DROP INDEX IF EXISTS public.seguimiento_tramite_id_creado_en_cambio_estado_index;
 
-CREATE INDEX IF NOT EXISTS ix_seg_asignado_a
-    ON public.seguimiento USING btree
-    (asignado_a ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ix_seg_comentario_tsv
-
--- DROP INDEX IF EXISTS public.ix_seg_comentario_tsv;
-
-CREATE INDEX IF NOT EXISTS ix_seg_comentario_tsv
-    ON public.seguimiento USING gin
-    (comentario_tsv)
-    WITH (fastupdate=True, gin_pending_list_limit=4194304)
-    TABLESPACE pg_default;
--- Index: ix_seg_creado_por
-
--- DROP INDEX IF EXISTS public.ix_seg_creado_por;
-
-CREATE INDEX IF NOT EXISTS ix_seg_creado_por
-    ON public.seguimiento USING btree
-    (creado_por ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ix_seg_estado_tram
-
--- DROP INDEX IF EXISTS public.ix_seg_estado_tram;
-
-CREATE INDEX IF NOT EXISTS ix_seg_estado_tram
+CREATE INDEX IF NOT EXISTS seguimiento_tramite_id_creado_en_cambio_estado_index
     ON public.seguimiento USING btree
     (tramite_id ASC NULLS LAST, creado_en DESC NULLS FIRST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default
     WHERE tipo_evento::text = 'CAMBIO_ESTADO'::text;
--- Index: ix_seg_recientes_true
+-- Index: seguimiento_tramite_id_id_index
 
--- DROP INDEX IF EXISTS public.ix_seg_recientes_true;
+-- DROP INDEX IF EXISTS public.seguimiento_tramite_id_id_index;
 
-CREATE INDEX IF NOT EXISTS ix_seg_recientes_true
-    ON public.seguimiento USING btree
-    (tramite_id ASC NULLS LAST, creado_en DESC NULLS FIRST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default
-    WHERE es_reciente IS TRUE;
--- Index: ix_seg_tramite_id_id_desc
-
--- DROP INDEX IF EXISTS public.ix_seg_tramite_id_id_desc;
-
-CREATE INDEX IF NOT EXISTS ix_seg_tramite_id_id_desc
+CREATE INDEX IF NOT EXISTS seguimiento_tramite_id_id_index
     ON public.seguimiento USING btree
     (tramite_id ASC NULLS LAST, id DESC NULLS FIRST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
--- Index: seguimiento_tramite_id_creado_en_index
-
--- DROP INDEX IF EXISTS public.seguimiento_tramite_id_creado_en_index;
-
-CREATE INDEX IF NOT EXISTS seguimiento_tramite_id_creado_en_index
-    ON public.seguimiento USING btree
-    (tramite_id ASC NULLS LAST, creado_en DESC NULLS FIRST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ux_seg_creacion_por_tramite
-
--- DROP INDEX IF EXISTS public.ux_seg_creacion_por_tramite;
-
-CREATE UNIQUE INDEX IF NOT EXISTS ux_seg_creacion_por_tramite
-    ON public.seguimiento USING btree
-    (tramite_id ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default
-    WHERE tipo_evento::text = 'CREACION'::text;
-
--- Trigger: trg_enforce_transicion_estado
-
--- DROP TRIGGER IF EXISTS trg_enforce_transicion_estado ON public.seguimiento;
-
-CREATE OR REPLACE TRIGGER trg_enforce_transicion_estado
-    BEFORE INSERT
-    ON public.seguimiento
-    FOR EACH ROW
-    EXECUTE FUNCTION public.enforce_transicion_estado();
-
--- Trigger: trg_seg_read_only
-
--- DROP TRIGGER IF EXISTS trg_seg_read_only ON public.seguimiento;
-
-CREATE OR REPLACE TRIGGER trg_seg_read_only
-    BEFORE DELETE OR UPDATE 
-    ON public.seguimiento
-    FOR EACH ROW
-    EXECUTE FUNCTION public.seguimiento_read_only();
-
--- Trigger: trg_set_ultimo_estado
-
--- DROP TRIGGER IF EXISTS trg_set_ultimo_estado ON public.seguimiento;
-
-CREATE OR REPLACE TRIGGER trg_set_ultimo_estado
-    BEFORE INSERT
-    ON public.seguimiento
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_ultimo_estado();
-
--- Trigger: trg_sync_tramite_estado
-
--- DROP TRIGGER IF EXISTS trg_sync_tramite_estado ON public.seguimiento;
-
-CREATE OR REPLACE TRIGGER trg_sync_tramite_estado
-    AFTER INSERT
-    ON public.seguimiento
-    FOR EACH ROW
-    EXECUTE FUNCTION public.sync_tramite_estado();

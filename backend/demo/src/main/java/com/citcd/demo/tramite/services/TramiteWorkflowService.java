@@ -48,7 +48,7 @@ public class TramiteWorkflowService {
     public void asignar(Long requestedId, AsignarTramiteRequest dto) {
 
         Usuario funcionario = usuarioRepository
-                .findByIdAndRolAndEsActivoTrue(dto.funcionarioId(), RolUsuario.ROLE_ADMINISTRATIVO)
+                .findByIdAndRolAndEsActivoTrue(dto.funcionarioId(), RolUsuario.ROLE_FUNCIONARIO)
                 .orElseThrow(
                         () -> new IllegalArgumentException("Funcionario no encontrado con id " + dto.funcionarioId()));
 
@@ -109,7 +109,6 @@ public class TramiteWorkflowService {
 
     @Transactional
     public void agregarComentarioTramite(Long requestedId, AgregarComentario dto) {
-
         Tramite tramite = tramiteRepository.findById(requestedId)
                 .orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
 

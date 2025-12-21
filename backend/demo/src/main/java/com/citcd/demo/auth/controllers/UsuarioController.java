@@ -17,11 +17,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioController {
 
-	private final UsuarioService service;
+    private final UsuarioService service;
 
-	@GetMapping("/administrativos/activos/combo")
-	public ResponseEntity<List<UsuarioComboDTO>> listarAdministrativosActivosParaCombo() {
-		return ResponseEntity.ok(service.getAdministrativosActivosParaCombo());
-	}
+    @GetMapping("/funcionarios/activos/combo")
+    public ResponseEntity<List<UsuarioComboDTO>> listarFuncionariosActivosParaCombo() {
+	return ResponseEntity.ok(service.listarFuncionariosActivosParaCombo());
+    }
 
 }

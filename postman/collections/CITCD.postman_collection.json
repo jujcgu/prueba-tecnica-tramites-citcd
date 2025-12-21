@@ -6,6 +6,132 @@
   },
   "item": [
     {
+      "name": "adjuntos",
+      "item": [
+        {
+          "name": "descargar",
+          "id": "7c85c6dd-0b3f-4720-adf6-b35511cf73f3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/adjuntos/descargar/e4029b5c-6690-472d-85e4-5e46ec78518f.pdf",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "adjuntos",
+                "descargar",
+                "e4029b5c-6690-472d-85e4-5e46ec78518f.pdf"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cargar certificado academico",
+          "id": "1476aa16-140e-4a6d-9356-eddd18ddf072",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "8ee48ce6-0db5-46cd-9da7-8cd6e4866c93",
+                  "src": [
+                    "/C:/Users/juan/Documents/upload_content/certificado_academico.pdf"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{host-port}}/api/adjuntos/cargar",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "adjuntos",
+                "cargar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cargar documento identidad",
+          "id": "49eab125-b65c-4aac-b5e2-17214059313e",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "8ee48ce6-0db5-46cd-9da7-8cd6e4866c93",
+                  "src": [
+                    "/C:/Users/juan/Documents/upload_content/documento_identidad.pdf"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{host-port}}/api/adjuntos/cargar",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "adjuntos",
+                "cargar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cargar recibo pago",
+          "id": "f3895fb9-62cb-47ab-9365-cf52738d076a",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "8ee48ce6-0db5-46cd-9da7-8cd6e4866c93",
+                  "src": [
+                    "/C:/Users/juan/Documents/upload_content/recibo_pago.pdf"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{host-port}}/api/adjuntos/cargar",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "adjuntos",
+                "cargar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "1f150209-5eb7-4958-96fb-8ef093f2db7f"
+    },
+    {
       "name": "auth",
       "item": [
         {
@@ -80,10 +206,41 @@
       }
     },
     {
+      "name": "tipos-documento",
+      "item": [
+        {
+          "name": "listar activos",
+          "id": "f7f0f5ed-567f-4e4a-be35-868b7115157c",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tipos-documento?activos=true",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tipos-documento"
+              ],
+              "query": [
+                {
+                  "key": "activos",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "32ecc6d9-43e4-45cf-84aa-1f6854675b70"
+    },
+    {
       "name": "tipos-tramite",
       "item": [
         {
-          "name": "listarActivos",
+          "name": "listar activos",
           "id": "b93128eb-4306-4721-878f-c7182f446558",
           "request": {
             "method": "GET",
@@ -108,7 +265,7 @@
           "response": []
         },
         {
-          "name": "listarDocumentosRequeridos",
+          "name": "listar documentos requeridos",
           "id": "fc20678c-d79c-4484-9af6-dba99a8f6eae",
           "request": {
             "method": "GET",
@@ -129,7 +286,7 @@
           "response": []
         },
         {
-          "name": "listarDocumentosRequeridosObligatorios",
+          "name": "listar documentos requeridos y obligatorios",
           "id": "a1f9d81b-84a5-4589-ae40-47f2d68a1fb9",
           "request": {
             "method": "GET",
@@ -160,103 +317,17 @@
       "id": "c09dfbb0-531a-4496-8a15-449b2363cfe9"
     },
     {
-      "name": "tipos-documento",
-      "item": [
-        {
-          "name": "listarActivos",
-          "id": "f7f0f5ed-567f-4e4a-be35-868b7115157c",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{host-port}}/api/tipos-documento?activos=true",
-              "host": [
-                "{{host-port}}"
-              ],
-              "path": [
-                "api",
-                "tipos-documento"
-              ],
-              "query": [
-                {
-                  "key": "activos",
-                  "value": "true"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ],
-      "id": "32ecc6d9-43e4-45cf-84aa-1f6854675b70"
-    },
-    {
-      "name": "usuarios",
-      "item": [
-        {
-          "name": "listarAdministrativosActivosParaCombo",
-          "id": "5b9b9687-4cba-4025-a87b-f9280363f4eb",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{host-port}}/api/usuarios/administrativos/activos/combo",
-              "host": [
-                "{{host-port}}"
-              ],
-              "path": [
-                "api",
-                "usuarios",
-                "administrativos",
-                "activos",
-                "combo"
-              ]
-            }
-          },
-          "response": []
-        }
-      ],
-      "id": "e3c22a25-3980-44db-abf1-e03a25edc905"
-    },
-    {
-      "name": "estados-tramite",
-      "item": [
-        {
-          "name": "download",
-          "id": "7c85c6dd-0b3f-4720-adf6-b35511cf73f3",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{host-port}}/api/adjuntos/files/d9c1675c-e375-450b-902a-c44762733674.pdf",
-              "host": [
-                "{{host-port}}"
-              ],
-              "path": [
-                "api",
-                "adjuntos",
-                "files",
-                "d9c1675c-e375-450b-902a-c44762733674.pdf"
-              ]
-            }
-          },
-          "response": []
-        }
-      ],
-      "id": "64707c62-0618-4784-a6f8-cbdc5e046999"
-    },
-    {
       "name": "tramites",
       "item": [
         {
-          "name": "createTramite \"Homologación\"",
+          "name": "radicar \"Homologación\"",
           "id": "7495eb37-0615-4550-9c31-e3c593d1acec",
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"tipoTramiteId\": 1,\r\n    \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n    \"adjuntos\": [\r\n        {\r\n            \"tipoDocumentoId\": 2,\r\n            \"nombreArchivo\": \"recibo_pago.pdf\",\r\n            \"storageKey\": \"fffa824d-20f4-4217-a674-731b1a9967f3.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 3,\r\n            \"nombreArchivo\": \"documento_identidad.docx\",\r\n            \"storageKey\": \"79e0b9ad-dfac-4ac8-9b9a-2f64157673ce.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 5,\r\n            \"nombreArchivo\": \"certificado_academico.pdf\",\r\n            \"storageKey\": \"7cbbb9b6-ca8e-4c7d-ac52-03b98f2c4f5a.pdf\"\r\n        }\r\n    ]\r\n}",
+              "raw": "{\r\n    \"tipoTramiteId\": 1,\r\n    \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n    \"adjuntos\": [\r\n        {\r\n            \"tipoDocumentoId\": 2,\r\n            \"nombreArchivo\": \"recibo_pago.pdf\",\r\n            \"storageKey\": \"ca595cb8-db45-4b4b-b46c-4678c8b19d22.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 3,\r\n            \"nombreArchivo\": \"documento_identidad.docx\",\r\n            \"storageKey\": \"5cf0a3d7-2bc1-4de2-b36d-82bc7f797cb0.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 5,\r\n            \"nombreArchivo\": \"certificado_academico.pdf\",\r\n            \"storageKey\": \"e4029b5c-6690-472d-85e4-5e46ec78518f.pdf\"\r\n        }\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -277,14 +348,14 @@
           "response": []
         },
         {
-          "name": "createTramite \"Cancelación de semestre\"",
+          "name": "radicar \"Cancelación de semestre\"",
           "id": "9bc78534-cbc3-4863-a9e1-9d35e3c53ae5",
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"tipoTramiteId\": 2,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 4,\r\n      \"nombreArchivo\": \"formato_cancelacion.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/formato_cancelacion.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 8,\r\n      \"nombreArchivo\": \"soporte_medico.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/soporte_medico.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
+              "raw": "{\r\n  \"tipoTramiteId\": 2,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"identificadorAlmacenamiento\": \"f55b857d-5ff5-4948-9145-abdd3a541fa8.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 4,\r\n      \"nombreArchivo\": \"formato_cancelacion.pdf\",\r\n      \"identificadorAlmacenamiento\": \"11a1ddc0-0b92-481e-969c-c391dd6d08b9.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 8,\r\n      \"nombreArchivo\": \"soporte_medico.pdf\",\r\n      \"identificadorAlmacenamiento\": \"6695be68-46d5-4435-b9a3-35d94c8f0549.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -305,7 +376,7 @@
           "response": []
         },
         {
-          "name": "findById",
+          "name": "detalles",
           "id": "6ec78136-5f3d-4c5b-9c30-52a63193aa2f",
           "request": {
             "method": "GET",
@@ -320,72 +391,21 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/6",
+              "raw": "{{host-port}}/api/tramites/10",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "6"
+                "10"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "findSeguimientoByTramiteId",
-          "id": "3a17a9da-64fe-4bcd-92e0-1a9a0cf72135",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"tipoTramiteId\": 2,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 4,\r\n      \"nombreArchivo\": \"formato_cancelacion.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/formato_cancelacion.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 8,\r\n      \"nombreArchivo\": \"soporte_medico.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/soporte_medico.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{host-port}}/api/tramites/6/seguimiento",
-              "host": [
-                "{{host-port}}"
-              ],
-              "path": [
-                "api",
-                "tramites",
-                "6",
-                "seguimiento"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "findTramiteByFuncionarioId",
-          "id": "d054427a-4108-4340-b25c-5e110bb69a08",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{host-port}}/api/tramites/funcionario/1",
-              "host": [
-                "{{host-port}}"
-              ],
-              "path": [
-                "api",
-                "tramites",
-                "funcionario",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "asignarFuncionarioTramite",
+          "name": "asignar funcionario",
           "id": "1f2cbe2e-e1b9-4c69-9dc8-cbcc904e3612",
           "request": {
             "method": "PUT",
@@ -400,14 +420,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/6/asignar",
+              "raw": "{{host-port}}/api/tramites/10/asignar",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "6",
+                "10",
                 "asignar"
               ]
             }
@@ -415,37 +435,7 @@
           "response": []
         },
         {
-          "name": "actualizarEstado",
-          "id": "fb072930-270a-4d31-9a21-4451ceb164e8",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"nuevoEstado\": \"EN_PROCESO\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{host-port}}/api/tramites/6/estado",
-              "host": [
-                "{{host-port}}"
-              ],
-              "path": [
-                "api",
-                "tramites",
-                "6",
-                "estado"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "agregarComentario",
+          "name": "agregar comentario",
           "id": "ddfc1c64-42d7-46b0-9bf2-e03ab9eef696",
           "request": {
             "method": "PUT",
@@ -460,15 +450,96 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/6/comentario",
+              "raw": "{{host-port}}/api/tramites/10/comentario",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "6",
+                "10",
                 "comentario"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "actualizar estado",
+          "id": "fb072930-270a-4d31-9a21-4451ceb164e8",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nuevoEstado\": \"FINALIZADO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites/10/estado",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "10",
+                "estado"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "listar seguimiento por tramite id",
+          "id": "3a17a9da-64fe-4bcd-92e0-1a9a0cf72135",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"tipoTramiteId\": 2,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 4,\r\n      \"nombreArchivo\": \"formato_cancelacion.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/formato_cancelacion.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 8,\r\n      \"nombreArchivo\": \"soporte_medico.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/soporte_medico.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites/10/seguimiento",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "10",
+                "seguimiento"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "listar tramites por funcionario id",
+          "id": "d054427a-4108-4340-b25c-5e110bb69a08",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tramites/funcionario/4",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "funcionario",
+                "4"
               ]
             }
           },
@@ -476,6 +547,34 @@
         }
       ],
       "id": "73584720-78fb-4942-97ea-287d00e31e63"
+    },
+    {
+      "name": "usuarios",
+      "item": [
+        {
+          "name": "listar funcionario activos para combo",
+          "id": "5b9b9687-4cba-4025-a87b-f9280363f4eb",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/usuarios/funcionarios/activos/combo",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "funcionarios",
+                "activos",
+                "combo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "e3c22a25-3980-44db-abf1-e03a25edc905"
     }
   ],
   "auth": {

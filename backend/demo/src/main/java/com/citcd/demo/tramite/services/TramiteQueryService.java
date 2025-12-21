@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.citcd.demo.adjunto.repositories.AdjuntoRepository;
+import com.citcd.demo.tramite.api.dto.TramiteAsignadoResponse;
 import com.citcd.demo.tramite.api.dto.TramiteDetalleResponse;
 import com.citcd.demo.tramite.repositories.TramiteRepository;
 
@@ -22,49 +23,44 @@ public class TramiteQueryService {
 
     @Transactional(readOnly = true)
     public TramiteDetalleResponse detalle(Long tramiteId) {
-        var t = tramiteRepository.findById(tramiteId)
-                .orElseThrow(() -> new EntityNotFoundException("Trámite no existe: " + tramiteId));
+	var t = tramiteRepository.findById(tramiteId)
+		.orElseThrow(() -> new EntityNotFoundException("Trámite no existe: " + tramiteId));
 
-        var adjuntos = adjuntoRepository.findByTramite_IdOrderByIdAsc(tramiteId);
+	var adjuntos = adjuntoRepository.findByTramite_IdOrderByIdAsc(tramiteId);
 
-        String base = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
+	String base = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
 
-        List<TramiteDetalleResponse.AdjuntoDetalle> adjDtos = adjuntos.stream()
-                .map(a -> new TramiteDetalleResponse.AdjuntoDetalle(
-                        a.getId(),
-                        a.getTipoDocumento().getId(),
-                        a.getNombreArchivo(),
-                        a.getStorageKey(),
-                        a.getMimeType(),
-                        a.getTamanoBytes(),
-                        a.getSha256(),
-                        base + "/api/adjuntos/files/" + a.getStorageKey()))
-                .toList();
+	List<TramiteDetalleResponse.AdjuntoDetalle> adjDtos = adjuntos.stream()
+		.map(a -> new TramiteDetalleResponse.AdjuntoDetalle(a.getId(), a.getTipoDocumento().getId(),
+			a.getNombreArchivo(), a.getIdentificadorAlmacenamiento(), a.getTipoMime(), a.getTamanoBytes(),
+			a.getSha256(), base + "/api/adjuntos/files/" + a.getIdentificadorAlmacenamiento()))
+		.toList();
 
-        String tipoNombre = (t.getTipoTramite() != null) ? t.getTipoTramite().getNombre() : null;
-        String radicadoPor = (t.getRadicadoPor() != null) ? t.getRadicadoPor().getEmail() : null;
+	String tipoNombre = (t.getTipoTramite() != null) ? t.getTipoTramite().getNombre() : null;
+	String radicadoPor = (t.getRadicadoPor() != null) ? t.getRadicadoPor().getEmail() : null;
 
-        String asignadoA = null;
-        try {
-            var m = t.getClass().getMethod("getAsignadoA");
-            Object u = m.invoke(t);
-            if (u != null) {
-                var getEmail = u.getClass().getMethod("getEmail");
-                asignadoA = (String) getEmail.invoke(u);
-            }
-        } catch (Exception ignored) {
-        }
+	String asignadoA = null;
+	try {
+	    var m = t.getClass().getMethod("getAsignadoA");
+	    Object u = m.invoke(t);
+	    if (u != null) {
+		var getEmail = u.getClass().getMethod("getEmail");
+		asignadoA = (String) getEmail.invoke(u);
+	    }
+	} catch (Exception ignored) {
+	}
 
-        return new TramiteDetalleResponse(
-                t.getId(),
-                t.getNumeroRadicado(),
-                t.getEstado(),
-                t.getTipoTramite().getId(),
-                tipoNombre,
-                t.getComentario(),
-                t.getCreadoEn(),
-                radicadoPor,
-                asignadoA,
-                adjDtos);
+	return new TramiteDetalleResponse(t.getId(), t.getNumeroRadicado(), t.getEstado(), t.getTipoTramite().getId(),
+		tipoNombre, t.getComentario(), t.getCreadoEn(), radicadoPor, asignadoA, adjDtos);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TramiteAsignadoResponse> getByfuncionarioId(long id) {
+	List<TramiteAsignadoResponse> list = tramiteRepository
+		.findByaAsignadoAId(id).stream().map(t -> new TramiteAsignadoResponse(t.numeroRadicado(),
+			t.correoSolicitante(), t.nombreTipoTramite(), t.estado(), t.creadoEn(), t.ultimoMovimiento()))
+		.toList();
+	return list;
+
     }
 }

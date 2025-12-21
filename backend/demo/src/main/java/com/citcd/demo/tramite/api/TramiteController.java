@@ -13,12 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.citcd.demo.seguimiento.dtos.SeguimientoResponseDTO;
 import com.citcd.demo.seguimiento.services.SeguimientoService;
 import com.citcd.demo.tramite.api.dto.AgregarComentario;
 import com.citcd.demo.tramite.api.dto.AsignarTramiteRequest;
 import com.citcd.demo.tramite.api.dto.CambiarEstadoRequest;
 import com.citcd.demo.tramite.api.dto.RadicarTramiteRequest;
-import com.citcd.demo.tramite.api.dto.RadicarTramiteResponse;
+import com.citcd.demo.tramite.api.dto.TramiteAsignadoResponse;
 import com.citcd.demo.tramite.api.dto.TramiteDetalleResponse;
 import com.citcd.demo.tramite.services.RadicacionTramiteService;
 import com.citcd.demo.tramite.services.TramiteQueryService;
@@ -38,46 +39,47 @@ public class TramiteController {
     private final TramiteWorkflowService tramiteWorkflowService;
 
     @PostMapping
-    public ResponseEntity<RadicarTramiteResponse> radicar(@Valid @RequestBody RadicarTramiteRequest request) {
-        RadicarTramiteResponse resp = radicacionTramiteService.radicar(request);
+    public ResponseEntity<Void> radicar(@Valid @RequestBody RadicarTramiteRequest request) {
+	long id = radicacionTramiteService.radicar(request).getId();
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(resp.id())
-                .toUri();
+	URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
 
-        return ResponseEntity.created(location).body(resp);
-    }
-
-    @GetMapping("/{id}/seguimiento")
-    public List<com.citcd.demo.seguimiento.dtos.SeguimientoResponseDTO> seguimiento(@PathVariable("id") Long id) {
-        return seguimientoService.listarPorTramiteId(id);
+	return ResponseEntity.created(location).build();
     }
 
     @GetMapping("/{id}")
     public TramiteDetalleResponse detalle(@PathVariable("id") Long id) {
-        return tramiteQueryService.detalle(id);
+	return tramiteQueryService.detalle(id);
     }
 
     @PutMapping("/{id}/asignar")
     public ResponseEntity<Void> asignar(@PathVariable("id") Long id, @Valid @RequestBody AsignarTramiteRequest req) {
-        tramiteWorkflowService.asignar(id, req);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{id}/estado")
-    public ResponseEntity<Void> actualizarEstado(@PathVariable("id") Long id,
-            @Valid @RequestBody CambiarEstadoRequest req) {
-        tramiteWorkflowService.cambiarEstado(id, req);
-        return ResponseEntity.noContent().build();
+	tramiteWorkflowService.asignar(id, req);
+	return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/comentario")
     public ResponseEntity<Void> agregarComentario(@PathVariable("id") Long requestedId,
-            @Valid @RequestBody AgregarComentario dto) {
-        tramiteWorkflowService.agregarComentarioTramite(requestedId, dto);
-        return ResponseEntity.noContent().build();
+	    @Valid @RequestBody AgregarComentario dto) {
+	tramiteWorkflowService.agregarComentarioTramite(requestedId, dto);
+	return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Void> actualizarEstado(@PathVariable("id") Long id,
+	    @Valid @RequestBody CambiarEstadoRequest req) {
+	tramiteWorkflowService.cambiarEstado(id, req);
+	return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/seguimiento")
+    public List<SeguimientoResponseDTO> seguimiento(@PathVariable("id") Long id) {
+	return seguimientoService.listarPorTramiteId(id);
+    }
+
+    @GetMapping("/funcionario/{id}")
+    public List<TramiteAsignadoResponse> listarPorFuncionario(@PathVariable("id") Long id) {
+	return tramiteQueryService.getByfuncionarioId(id);
     }
 
 }

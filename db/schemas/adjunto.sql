@@ -10,17 +10,16 @@ CREATE TABLE IF NOT EXISTS public.adjunto
     nombre_archivo character varying COLLATE pg_catalog."default" NOT NULL,
     subido_por bigint NOT NULL,
     creado_en timestamp with time zone NOT NULL DEFAULT now(),
-    storage_backend text COLLATE pg_catalog."default" NOT NULL DEFAULT 'FS'::text,
-    storage_key text COLLATE pg_catalog."default" NOT NULL,
-    mime_type text COLLATE pg_catalog."default" NOT NULL,
+    servicio_almacenamiento text COLLATE pg_catalog."default" NOT NULL DEFAULT 'LOCAL'::text,
+    identificador_almacenamiento text COLLATE pg_catalog."default" NOT NULL,
+    tipo_mime text COLLATE pg_catalog."default" NOT NULL,
     tamano_bytes bigint NOT NULL,
     sha256 text COLLATE pg_catalog."default" NOT NULL,
-    version integer NOT NULL DEFAULT 1,
-    virus_scan_status text COLLATE pg_catalog."default" NOT NULL DEFAULT 'PENDING'::text,
-    actualizado_en timestamp with time zone NOT NULL DEFAULT now(),
-    virus_scan_at timestamp with time zone,
-    quarantine boolean NOT NULL DEFAULT false,
+    estado_analisis_virus text COLLATE pg_catalog."default" NOT NULL DEFAULT 'PENDIENTE'::text,
+    analizado_en timestamp with time zone,
+    esta_cuarentenado boolean NOT NULL DEFAULT false,
     CONSTRAINT adjunto_pkey PRIMARY KEY (id),
+    CONSTRAINT adjunto_identificador_almacenamiento_key UNIQUE (identificador_almacenamiento),
     CONSTRAINT adjunto_subido_por_fkey FOREIGN KEY (subido_por)
         REFERENCES public.usuario (id) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -33,130 +32,55 @@ CREATE TABLE IF NOT EXISTS public.adjunto
         REFERENCES public.tramite (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
-    CONSTRAINT adjunto_tamano_bytes_check CHECK (tamano_bytes >= 0),
-    CONSTRAINT adjunto_virus_scan_status_chk CHECK (virus_scan_status = ANY (ARRAY['PENDING'::text, 'CLEAN'::text, 'INFECTED'::text])),
-    CONSTRAINT adjunto_storage_backend_chk CHECK (storage_backend = 'FS'::text),
+    CONSTRAINT adjunto_tamano_bytes_chk CHECK (tamano_bytes >= 0),
     CONSTRAINT adjunto_sha256_hex_chk CHECK (sha256 ~ '^[0-9a-f]{64}$'::text),
-    CONSTRAINT adjunto_version_chk CHECK (version >= 1),
-    CONSTRAINT adjunto_storage_key_safe_chk CHECK (storage_key IS NOT NULL AND length(storage_key) > 0 AND storage_key !~ '^/'::text AND storage_key !~~ '%..%'::text),
-    CONSTRAINT adjunto_mime_type_chk CHECK (mime_type ~ '^[A-Za-z0-9.+-]+/[A-Za-z0-9.+-]+$'::text)
+    CONSTRAINT adjunto_identificador_almacenamiento_safe_chk CHECK (identificador_almacenamiento IS NOT NULL AND length(identificador_almacenamiento) > 0 AND identificador_almacenamiento !~ '^/'::text AND identificador_almacenamiento !~~ '%..%'::text),
+    CONSTRAINT adjunto_tipo_mime_chk CHECK (lower(tipo_mime) = ANY (ARRAY['application/pdf'::text, 'image/jpeg'::text, 'image/png'::text, 'application/msword'::text, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'::text])),
+    CONSTRAINT adjunto_servicio_almacenamiento_chk CHECK (servicio_almacenamiento = 'LOCAL'::text),
+    CONSTRAINT adjunto_estado_analisis_virus_chk CHECK (estado_analisis_virus = ANY (ARRAY['PENDIENTE'::text, 'SEGURO'::text, 'AMENAZA'::text]))
 )
 
 TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.adjunto
     OWNER to demo;
--- Index: ix_adj_scan_pending
 
--- DROP INDEX IF EXISTS public.ix_adj_scan_pending;
+-- Trigger: check_max_per_tipo_tramite_insert_update
 
-CREATE INDEX IF NOT EXISTS ix_adj_scan_pending
-    ON public.adjunto USING btree
-    (virus_scan_status COLLATE pg_catalog."default" ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default
-    WHERE virus_scan_status = 'PENDING'::text;
--- Index: ix_adj_subido_por
+-- DROP TRIGGER IF EXISTS check_max_per_tipo_tramite_insert_update ON public.adjunto;
 
--- DROP INDEX IF EXISTS public.ix_adj_subido_por;
-
-CREATE INDEX IF NOT EXISTS ix_adj_subido_por
-    ON public.adjunto USING btree
-    (subido_por ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ix_adj_tram_tipodoc
-
--- DROP INDEX IF EXISTS public.ix_adj_tram_tipodoc;
-
-CREATE INDEX IF NOT EXISTS ix_adj_tram_tipodoc
-    ON public.adjunto USING btree
-    (tramite_id ASC NULLS LAST, tipo_documento_id ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ix_adj_tramite_fecha
-
--- DROP INDEX IF EXISTS public.ix_adj_tramite_fecha;
-
-CREATE INDEX IF NOT EXISTS ix_adj_tramite_fecha
-    ON public.adjunto USING btree
-    (tramite_id ASC NULLS LAST, creado_en DESC NULLS FIRST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ix_adjunto_sha256
-
--- DROP INDEX IF EXISTS public.ix_adjunto_sha256;
-
-CREATE INDEX IF NOT EXISTS ix_adjunto_sha256
-    ON public.adjunto USING btree
-    (sha256 COLLATE pg_catalog."default" ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ux_adj_tram_arch_ver
-
--- DROP INDEX IF EXISTS public.ux_adj_tram_arch_ver;
-
-CREATE UNIQUE INDEX IF NOT EXISTS ux_adj_tram_arch_ver
-    ON public.adjunto USING btree
-    (tramite_id ASC NULLS LAST, nombre_archivo COLLATE pg_catalog."default" ASC NULLS LAST, version ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
--- Index: ux_adjunto_path
-
--- DROP INDEX IF EXISTS public.ux_adjunto_path;
-
-CREATE UNIQUE INDEX IF NOT EXISTS ux_adjunto_path
-    ON public.adjunto USING btree
-    (storage_key COLLATE pg_catalog."default" ASC NULLS LAST)
-    WITH (fillfactor=100, deduplicate_items=True)
-    TABLESPACE pg_default;
-
--- Trigger: set_updated_at_adjunto
-
--- DROP TRIGGER IF EXISTS set_updated_at_adjunto ON public.adjunto;
-
-CREATE OR REPLACE TRIGGER set_updated_at_adjunto
-    BEFORE UPDATE 
-    ON public.adjunto
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_updated_at();
-
--- Trigger: trg_enforce_max_adjuntos
-
--- DROP TRIGGER IF EXISTS trg_enforce_max_adjuntos ON public.adjunto;
-
-CREATE OR REPLACE TRIGGER trg_enforce_max_adjuntos
+CREATE OR REPLACE TRIGGER check_max_per_tipo_tramite_insert_update
     BEFORE INSERT OR UPDATE OF tramite_id, tipo_documento_id
     ON public.adjunto
     FOR EACH ROW
-    EXECUTE FUNCTION public.enforce_max_adjuntos();
+    EXECUTE FUNCTION public.check_adjunto_max_per_tipo_tramite();
 
--- Trigger: trg_norm_storage_key
+-- Trigger: check_tipo_documento_vs_tramite_insert_update
 
--- DROP TRIGGER IF EXISTS trg_norm_storage_key ON public.adjunto;
+-- DROP TRIGGER IF EXISTS check_tipo_documento_vs_tramite_insert_update ON public.adjunto;
 
-CREATE OR REPLACE TRIGGER trg_norm_storage_key
-    BEFORE INSERT OR UPDATE OF storage_key
-    ON public.adjunto
-    FOR EACH ROW
-    EXECUTE FUNCTION public.normalize_storage_key();
-
--- Trigger: trg_set_virus_scan_at
-
--- DROP TRIGGER IF EXISTS trg_set_virus_scan_at ON public.adjunto;
-
-CREATE OR REPLACE TRIGGER trg_set_virus_scan_at
-    BEFORE INSERT OR UPDATE OF virus_scan_status
-    ON public.adjunto
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_virus_scan_at();
-
--- Trigger: trg_validar_adjuntos_tipo_tramite
-
--- DROP TRIGGER IF EXISTS trg_validar_adjuntos_tipo_tramite ON public.adjunto;
-
-CREATE OR REPLACE TRIGGER trg_validar_adjuntos_tipo_tramite
+CREATE OR REPLACE TRIGGER check_tipo_documento_vs_tramite_insert_update
     BEFORE INSERT OR UPDATE OF tramite_id, tipo_documento_id
     ON public.adjunto
     FOR EACH ROW
-    EXECUTE FUNCTION public.validar_adjuntos_tipo_tramite();
+    EXECUTE FUNCTION public.check_adjunto_tipo_documento_vs_tramite();
+
+-- Trigger: normalize_identificador_almacenamiento_insert_update
+
+-- DROP TRIGGER IF EXISTS normalize_identificador_almacenamiento_insert_update ON public.adjunto;
+
+CREATE OR REPLACE TRIGGER normalize_identificador_almacenamiento_insert_update
+    BEFORE INSERT OR UPDATE OF identificador_almacenamiento
+    ON public.adjunto
+    FOR EACH ROW
+    EXECUTE FUNCTION public.normalize_adjunto_identificador_almacenamiento();
+
+-- Trigger: set_estado_analisis_virus_timestamp_insert_update
+
+-- DROP TRIGGER IF EXISTS set_estado_analisis_virus_timestamp_insert_update ON public.adjunto;
+
+CREATE OR REPLACE TRIGGER set_estado_analisis_virus_timestamp_insert_update
+    BEFORE INSERT OR UPDATE OF estado_analisis_virus
+    ON public.adjunto
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_adjunto_virus_scan_timestamp();

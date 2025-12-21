@@ -56,22 +56,26 @@ public class FileSystemStorageService implements StorageService {
 	}
 
 	@Override
-	public StoredFileInfo storeAndGetInfo(MultipartFile file) {
+	public InfoArchivoAlmacenado storeAndGetInfo(MultipartFile file) {
 		try {
 			if (file == null || file.isEmpty())
 				throw new StorageException("Failed to store empty file.");
 
 			String original = StringUtils
 					.cleanPath(file.getOriginalFilename() == null ? "file" : file.getOriginalFilename());
+
 			String ext = StringUtils.getFilenameExtension(original);
+
 			String key = UUID.randomUUID() + (ext == null || ext.isBlank() ? "" : "." + ext.toLowerCase());
 
 			Path destinationFile = this.rootLocation.resolve(key).normalize().toAbsolutePath();
+
 			if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
 				throw new StorageException("Cannot store file outside current directory.");
 			}
 
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
+
 			try (InputStream is = file.getInputStream(); DigestInputStream dis = new DigestInputStream(is, md)) {
 				Files.copy(dis, destinationFile);
 			}
@@ -79,7 +83,7 @@ public class FileSystemStorageService implements StorageService {
 			String sha256 = toHex(md.digest());
 			String mime = normalizeMime(file.getContentType(), destinationFile, original);
 
-			return new StoredFileInfo(key, original, file.getSize(), mime, sha256);
+			return new InfoArchivoAlmacenado(key, original, file.getSize(), mime, sha256);
 
 		} catch (FileAlreadyExistsException e) {
 			return storeAndGetInfo(file);
@@ -89,31 +93,39 @@ public class FileSystemStorageService implements StorageService {
 	}
 
 	@Override
-	public StoredFileInfo getInfo(String storageKey) {
+	public InfoArchivoAlmacenado getInfo(String identificadorAlmacenamiento) {
 		try {
-			Path p = load(storageKey).normalize().toAbsolutePath();
+			Path p = load(identificadorAlmacenamiento).normalize().toAbsolutePath();
+
 			if (!p.getParent().equals(this.rootLocation.toAbsolutePath())) {
-				throw new StorageFileNotFoundException("Invalid storageKey: " + storageKey);
+				throw new StorageFileNotFoundException(
+						"Invalid identificadorAlmacenamiento: " + identificadorAlmacenamiento);
 			}
+
 			if (!Files.exists(p)) {
-				throw new StorageFileNotFoundException("File not found: " + storageKey);
+				throw new StorageFileNotFoundException("File not found: " + identificadorAlmacenamiento);
 			}
 
 			long size = Files.size(p);
-			String mime = normalizeMime(null, p, storageKey);
+			String mime = normalizeMime(null, p, identificadorAlmacenamiento);
 
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
+
 			try (InputStream is = Files.newInputStream(p); DigestInputStream dis = new DigestInputStream(is, md)) {
 				dis.transferTo(java.io.OutputStream.nullOutputStream());
 			}
+
 			String sha256 = toHex(md.digest());
 
-			return new StoredFileInfo(storageKey, storageKey, size, mime, sha256);
+			return new InfoArchivoAlmacenado(identificadorAlmacenamiento, identificadorAlmacenamiento, size, mime,
+					sha256);
 
 		} catch (IOException e) {
-			throw new StorageException("Failed to read stored file info: " + storageKey, e);
+			throw new StorageException(
+					"No se pudo leer la información del archivo almacenado: " + identificadorAlmacenamiento, e);
 		} catch (Exception e) {
-			throw new StorageException("Failed to compute stored file info: " + storageKey, e);
+			throw new StorageException(
+					"No se pudo leer la información del archivo almacenado: " + identificadorAlmacenamiento, e);
 		}
 	}
 
@@ -123,7 +135,7 @@ public class FileSystemStorageService implements StorageService {
 			return Files.walk(this.rootLocation, 1).filter(path -> !path.equals(this.rootLocation))
 					.map(this.rootLocation::relativize);
 		} catch (IOException e) {
-			throw new StorageException("Failed to read stored files", e);
+			throw new StorageException("No se pudieron leer los archivos almacenados.", e);
 		}
 	}
 

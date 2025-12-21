@@ -1,15 +1,10 @@
 package com.citcd.demo.catalogos.tipodocumento.model;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
@@ -53,26 +48,6 @@ public class TipoDocumento {
 
     @Column(name = "es_activo", nullable = false)
     private boolean esActivo;
-
-    @Column(name = "creado_en", nullable = false, columnDefinition = "timestamp with time zone")
-    private OffsetDateTime creadoEn;
-
-    @Column(name = "actualizado_en", nullable = false, columnDefinition = "timestamp with time zone")
-    private OffsetDateTime actualizadoEn;
-
-    @PrePersist
-    void prePersist() {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        if (creadoEn == null)
-            creadoEn = now;
-        if (actualizadoEn == null)
-            actualizadoEn = now;
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
-    }
 
     public boolean esActivo() {
         return this.esActivo;

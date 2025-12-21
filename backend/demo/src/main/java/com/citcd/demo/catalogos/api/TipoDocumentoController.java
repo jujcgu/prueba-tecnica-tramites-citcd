@@ -8,17 +8,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.citcd.demo.catalogos.api.dto.TipoDocumentoDto;
-import com.citcd.demo.catalogos.services.CatalogosQueryService;
+import com.citcd.demo.catalogos.services.ConsultaCatalogosService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/tipos-documento")
+@RequiredArgsConstructor
 public class TipoDocumentoController {
 
-	private final CatalogosQueryService service;
-
-	public TipoDocumentoController(CatalogosQueryService service) {
-		this.service = service;
-	}
+	private final ConsultaCatalogosService service;
 
 	@GetMapping
 	public List<TipoDocumentoDto> listar(@RequestParam(name = "activos", required = false) Boolean activos) {

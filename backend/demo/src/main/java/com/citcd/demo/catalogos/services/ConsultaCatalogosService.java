@@ -18,21 +18,15 @@ import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteDocumentoRep
 import com.citcd.demo.catalogos.tipotramite.repositories.TipoTramiteRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 
 @Service
-public class CatalogosQueryService {
+@RequiredArgsConstructor
+public class ConsultaCatalogosService {
 
 	private final TipoTramiteRepository tipoTramiteRepository;
 	private final TipoDocumentoRepository tipoDocumentoRepository;
 	private final TipoTramiteDocumentoRepository tipoTramiteDocumentoRepository;
-
-	public CatalogosQueryService(TipoTramiteRepository tipoTramiteRepository,
-			TipoDocumentoRepository tipoDocumentoRepository,
-			TipoTramiteDocumentoRepository tipoTramiteDocumentoRepository) {
-		this.tipoTramiteRepository = tipoTramiteRepository;
-		this.tipoDocumentoRepository = tipoDocumentoRepository;
-		this.tipoTramiteDocumentoRepository = tipoTramiteDocumentoRepository;
-	}
 
 	@Transactional(readOnly = true)
 	public List<TipoTramiteDto> listarTiposTramite(Boolean activos) {
@@ -74,6 +68,7 @@ public class CatalogosQueryService {
 
 	private DocumentoRequeridoDto toDto(TipoTramiteDocumento r) {
 		TipoDocumento td = r.getTipoDocumento();
+
 		Set<String> mimes = (r.getMimePermitidos() == null) ? Collections.emptySet() : r.getMimePermitidos();
 
 		return new DocumentoRequeridoDto(td.getId(), td.getCodigo(), td.getNombre(), td.getDescripcion(),

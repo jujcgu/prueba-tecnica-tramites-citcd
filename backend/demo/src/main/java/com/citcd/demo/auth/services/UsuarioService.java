@@ -16,11 +16,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioService {
 
-	private final UsuarioRepository repository;
+    private final UsuarioRepository repository;
 
-	public List<UsuarioComboDTO> getAdministrativosActivosParaCombo() {
-		return repository.findByRolAndEsActivoTrue(RolUsuario.ROLE_ADMINISTRATIVO).stream()
-				.map(p -> new UsuarioComboDTO(p.getId(), p.getEmail())).toList();
-	}
+    public List<UsuarioComboDTO> listarFuncionariosActivosParaCombo() {
+	return repository.findByRolAndEsActivoTrue(RolUsuario.ROLE_FUNCIONARIO).stream()
+		.map(p -> new UsuarioComboDTO(p.getId(), p.getEmail())).toList();
+    }
 
 }

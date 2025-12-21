@@ -12,9 +12,9 @@ public interface StorageService {
 
     void store(MultipartFile file);
 
-    StoredFileInfo storeAndGetInfo(MultipartFile file);
+    InfoArchivoAlmacenado storeAndGetInfo(MultipartFile file);
 
-    StoredFileInfo getInfo(String storageKey);
+    InfoArchivoAlmacenado getInfo(String identificadorAlmacenamiento);
 
     Stream<Path> loadAll();
 

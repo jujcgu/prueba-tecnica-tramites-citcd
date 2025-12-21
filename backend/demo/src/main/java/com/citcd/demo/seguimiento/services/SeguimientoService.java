@@ -19,55 +19,43 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SeguimientoService {
 
-    private final SeguimientoRepository seguimientoRepository;
+	private final SeguimientoRepository seguimientoRepository;
 
-    @Transactional(readOnly = true)
-    public List<SeguimientoResponseDTO> listarPorTramiteId(Long tramiteId) {
-        if (tramiteId == null)
-            throw new IllegalArgumentException("tramiteId es requerido");
+	@Transactional(readOnly = true)
+	public List<SeguimientoResponseDTO> listarPorTramiteId(Long tramiteId) {
+		if (tramiteId == null)
+			throw new IllegalArgumentException("tramiteId es requerido");
 
-        var rows = seguimientoRepository.findByTramiteId(tramiteId);
+		var rows = seguimientoRepository.findByTramiteId(tramiteId);
 
-        return rows.stream()
-                .map(p -> new SeguimientoResponseDTO(
-                        p.getCreadoEn(),
-                        p.getCreadoPorEmail(),
-                        p.getTipoEvento(),
-                        p.getUltimoEstado(),
-                        p.getNuevoEstado()))
-                .toList();
-    }
+		return rows.stream().map(p -> new SeguimientoResponseDTO(p.getCreadoEn(), p.getCreadoPorEmail(),
+				p.getTipoEvento(), p.getUltimoEstado(), p.getNuevoEstado())).toList();
+	}
 
-    public void registrarCreacion(Tramite tramite, Usuario actor) {
-        Seguimiento s = base(tramite, actor, TipoEvento.CREACION);
-        s.setNuevoEstado(EstadoTramite.RADICADO);
-        seguimientoRepository.save(s);
-    }
+	@Transactional
+	public void registrarCambioEstado(Tramite tramite, Usuario actor, EstadoTramite nuevo) {
+		Seguimiento s = base(tramite, actor, TipoEvento.CAMBIO_ESTADO);
+		s.setNuevoEstado(nuevo);
+		seguimientoRepository.save(s);
+	}
 
-    @Transactional
-    public void registrarCambioEstado(Tramite tramite, Usuario actor, EstadoTramite nuevo) {
-        Seguimiento s = base(tramite, actor, TipoEvento.CAMBIO_ESTADO);
-        s.setNuevoEstado(nuevo);
-        seguimientoRepository.save(s);
-    }
+	@Transactional
+	public void registrarComentario(Tramite tramite, Usuario actor, String comentario) {
+		String c = comentario == null ? "" : comentario.trim();
+		if (c.isBlank())
+			throw new IllegalArgumentException("El comentario no puede ser vacío");
 
-    @Transactional
-    public void registrarComentario(Tramite tramite, Usuario actor, String comentario) {
-        String c = comentario == null ? "" : comentario.trim();
-        if (c.isBlank())
-            throw new IllegalArgumentException("El comentario no puede ser vacío");
+		Seguimiento s = base(tramite, actor, TipoEvento.COMENTARIO);
+		s.setComentario(c);
+		seguimientoRepository.save(s);
+	}
 
-        Seguimiento s = base(tramite, actor, TipoEvento.COMENTARIO);
-        s.setComentario(c);
-        seguimientoRepository.save(s);
-    }
-
-    private static Seguimiento base(Tramite tramite, Usuario actor, TipoEvento tipoEvento) {
-        Seguimiento s = new Seguimiento();
-        s.setTramite(tramite);
-        s.setCreadoPor(actor);
-        s.setTipoEvento(tipoEvento);
-        return s;
-    }
+	private Seguimiento base(Tramite tramite, Usuario actor, TipoEvento tipoEvento) {
+		Seguimiento s = new Seguimiento();
+		s.setTramite(tramite);
+		s.setCreadoPor(actor);
+		s.setTipoEvento(tipoEvento);
+		return s;
+	}
 
 }
