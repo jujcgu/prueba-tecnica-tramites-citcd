@@ -1,4 +1,4 @@
-export type AuthSession = {
+export type AuthSessionModel = {
   accessToken: string;
   isAdmin: boolean;
 };

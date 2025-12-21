@@ -1,4 +1,4 @@
-export type LoginResponse = {
+export type LoginResponseModel = {
   accessToken: string;
   isAdmin: boolean;
 };
