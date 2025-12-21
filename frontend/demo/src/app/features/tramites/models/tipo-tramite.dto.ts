@@ -1,4 +1,4 @@
-export type TipoTramite = {
+export type TipoTramiteDto = {
   id: number;
   codigo: string;
   nombre: string;

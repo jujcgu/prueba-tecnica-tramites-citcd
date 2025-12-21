@@ -327,7 +327,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"tipoTramiteId\": 1,\r\n    \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n    \"adjuntos\": [\r\n        {\r\n            \"tipoDocumentoId\": 2,\r\n            \"nombreArchivo\": \"recibo_pago.pdf\",\r\n            \"storageKey\": \"ca595cb8-db45-4b4b-b46c-4678c8b19d22.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 3,\r\n            \"nombreArchivo\": \"documento_identidad.docx\",\r\n            \"storageKey\": \"5cf0a3d7-2bc1-4de2-b36d-82bc7f797cb0.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 5,\r\n            \"nombreArchivo\": \"certificado_academico.pdf\",\r\n            \"storageKey\": \"e4029b5c-6690-472d-85e4-5e46ec78518f.pdf\"\r\n        }\r\n    ]\r\n}",
+              "raw": "{\r\n    \"tipoTramiteId\": 1,\r\n    \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n    \"adjuntos\": [\r\n        {\r\n            \"tipoDocumentoId\": 2,\r\n            \"nombreArchivo\": \"recibo_pago.pdf\",\r\n            \"identificadorAlmacenamiento\": \"6ac1ea9b-13af-4967-9c4d-c68324737089.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 3,\r\n            \"nombreArchivo\": \"documento_identidad.docx\",\r\n            \"identificadorAlmacenamiento\": \"dcd7fd78-5178-4ae5-b261-b2dda7dace59.pdf\"\r\n        },\r\n        {\r\n            \"tipoDocumentoId\": 5,\r\n            \"nombreArchivo\": \"certificado_academico.pdf\",\r\n            \"identificadorAlmacenamiento\": \"ff184f4c-7e6d-445e-a783-5d892634a169.pdf\"\r\n        }\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -391,14 +391,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/10",
+              "raw": "{{host-port}}/api/tramites/16",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "10"
+                "16"
               ]
             }
           },
@@ -420,14 +420,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/10/asignar",
+              "raw": "{{host-port}}/api/tramites/16/asignar",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "10",
+                "16",
                 "asignar"
               ]
             }
@@ -450,14 +450,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/10/comentario",
+              "raw": "{{host-port}}/api/tramites/16/comentario",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "10",
+                "16",
                 "comentario"
               ]
             }
@@ -480,14 +480,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/10/estado",
+              "raw": "{{host-port}}/api/tramites/16/estado",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "10",
+                "16",
                 "estado"
               ]
             }
@@ -510,14 +510,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/10/seguimiento",
+              "raw": "{{host-port}}/api/tramites/16/seguimiento",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "10",
+                "16",
                 "seguimiento"
               ]
             }

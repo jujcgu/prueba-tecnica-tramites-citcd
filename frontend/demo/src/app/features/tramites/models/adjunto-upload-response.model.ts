@@ -1,4 +1,4 @@
-export type AdjuntoUploadResponse = {
+export type AdjuntoUploadResponseModel = {
   identificadorAlmacenamiento: string;
   nombreArchivoOriginal: string;
   tamanoBytes: number;

@@ -1,13 +1,13 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
-import { AuthSession } from '../types/auth-session';
+import { AuthSessionModel } from '../models/auth-session.model';
 
 const STORAGE_KEY = 'auth.session';
 
-function loadSession(): AuthSession | null {
+function loadSession(): AuthSessionModel | null {
   const raw = sessionStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as AuthSession;
+    return JSON.parse(raw) as AuthSessionModel;
   } catch {
     return null;
   }
@@ -15,7 +15,7 @@ function loadSession(): AuthSession | null {
 
 @Injectable({ providedIn: 'root' })
 export class AuthState {
-  private readonly _session = signal<AuthSession | null>(loadSession());
+  private readonly _session = signal<AuthSessionModel | null>(loadSession());
 
   readonly session = computed(() => this._session());
   readonly accessToken = computed(() => this._session()?.accessToken ?? null);
@@ -30,7 +30,7 @@ export class AuthState {
     });
   }
 
-  setSession(session: AuthSession): void {
+  setSession(session: AuthSessionModel): void {
     this._session.set(session);
   }
 

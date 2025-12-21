@@ -10,8 +10,8 @@ import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-home',
-  templateUrl: './home-page.html',
-  styleUrl: './home-page.scss',
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
   imports: [
     AsyncPipe,
     MatGridListModule,
@@ -21,7 +21,7 @@ import { MatCardModule } from '@angular/material/card';
     MatCardModule,
   ],
 })
-export class HomePage {
+export class HomeComponent {
   private breakpointObserver = inject(BreakpointObserver);
 
   /** Based on the screen size, switch from standard to one column per row */

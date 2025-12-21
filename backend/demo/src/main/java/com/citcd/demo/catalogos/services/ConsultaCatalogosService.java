@@ -31,7 +31,7 @@ public class ConsultaCatalogosService {
 	@Transactional(readOnly = true)
 	public List<TipoTramiteDto> listarTiposTramite(Boolean activos) {
 		List<TipoTramite> items = Boolean.TRUE.equals(activos)
-				? tipoTramiteRepository.findByEsActivoTrueOrderByNombreAsc()
+				? tipoTramiteRepository.findByEsActivoTrueOrderByIdAsc()
 				: tipoTramiteRepository.findAllByOrderByNombreAsc();
 
 		return items.stream().map(this::toDto).toList();

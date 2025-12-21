@@ -10,5 +10,5 @@ public interface TipoTramiteRepository extends JpaRepository<TipoTramite, Long> 
 
     List<TipoTramite> findAllByOrderByNombreAsc();
 
-    List<TipoTramite> findByEsActivoTrueOrderByNombreAsc();
+    List<TipoTramite> findByEsActivoTrueOrderByIdAsc();
 }

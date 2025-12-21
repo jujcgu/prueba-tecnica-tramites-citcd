@@ -1,4 +1,4 @@
-export type CrearTramiteRequest = {
+export type CrearTramiteRequestModel = {
   tipoTramiteId: number;
   comentario: string;
   adjuntos: Array<{
