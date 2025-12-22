@@ -1,4 +1,4 @@
-export interface AdjuntoDetalle {
+export interface Adjunto {
   tipoDocumentoNombre: string;
   nombreArchivo: string;
   urlDescarga: string;
@@ -11,6 +11,7 @@ export interface TramiteDetalle {
   estado: string;
   creadoEn: string;
   ultimoMovimiento: string;
-  funcionarioAsignado: string;
-  adjuntos: AdjuntoDetalle[];
+  funcionarioAsignado: string | null;
+  adjuntos: Adjunto[];
 }
+

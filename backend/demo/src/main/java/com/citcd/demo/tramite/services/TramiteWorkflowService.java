@@ -80,9 +80,9 @@ public class TramiteWorkflowService {
     }
 
     @Transactional
-    public void cambiarEstado(Long requestedId, CambiarEstadoRequest dto) {
-        Tramite tramite = tramiteRepository.findById(requestedId)
-                .orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
+    public void cambiarEstado(Long numeroRadicado, CambiarEstadoRequest dto) {
+        Tramite tramite = tramiteRepository.findByNumeroRadicado(numeroRadicado)
+                .orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + numeroRadicado));
 
         Usuario creadoPor = usuarioAutenticado();
 

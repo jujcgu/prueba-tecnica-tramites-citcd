@@ -1,0 +1,43 @@
+@if (seguimiento(); as eventos) {
+  <div class="seguimiento-container">
+    <div class="header">
+      <a mat-stroked-button routerLink="/admin/tramites" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Volver a la lista</span>
+      </a>
+      <h1>Seguimiento del Trámite #{{ numeroRadicado() }}</h1>
+      <p>Historial detallado de todos los eventos y cambios del trámite.</p>
+    </div>
+
+    @if (eventos.length > 0) {
+      <div class="timeline">
+        @for (evento of eventos; track $index) {
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <mat-icon>{{ getIconForEvent(evento.tipoEvento) }}</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <p class="event-description">{{ getEventDescription(evento) }}</p>
+              <p class="event-details">
+                <span class="date">{{ evento.creadoEn | date:'medium' }}</span>
+                <span class="user">por {{ evento.creadoPorEmail }}</span>
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="no-results">
+        <mat-icon>hourglass_empty</mat-icon>
+        <p>No hay eventos de seguimiento para este trámite todavía.</p>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="loading-container">
+    <div class="loading-indicator">
+      <!-- You could use a spinner here -->
+      <p>Cargando historial...</p>
+    </div>
+  </div>
+}

@@ -1,15 +1,15 @@
-import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { TramiteDetalle } from '../models/tramite-admin.model';
-import { Funcionario } from '../models/funcionario.model';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable} from 'rxjs';
+import {TramiteDetalle} from '../models/tramite-admin.model';
+import {Funcionario} from '../models/funcionario.model';
+import {Seguimiento} from '../models/seguimiento.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TramitesAdminService {
   private readonly http = inject(HttpClient);
-
   /**
    * Fetches the available status options for procedures.
    * @returns An observable with an array of status strings.
@@ -17,7 +17,6 @@ export class TramitesAdminService {
   getEstados(): Observable<string[]> {
     return this.http.get<string[]>('/api/tramites/estados');
   }
-
   /**
    * Fetches the detailed list of procedures for a given status.
    * @param estado The status to filter by.
@@ -28,7 +27,6 @@ export class TramitesAdminService {
       `/api/tramites/estado/${estado}/detalle`
     );
   }
-
   /**
    * Fetches the list of active funcionarios.
    * @returns An observable with an array of funcionarios.
@@ -38,7 +36,6 @@ export class TramitesAdminService {
       '/api/usuarios/funcionarios/activos/combo'
     );
   }
-
   /**
    * Assigns a tramite to a funcionario.
    * @param numeroRadicado The ID of the tramite to assign.
@@ -54,5 +51,21 @@ export class TramitesAdminService {
       { funcionarioId }
     );
   }
-
+  /**
+   * Changes the status of a tramite.
+   * @param numeroRadicado The ID of the tramite.
+   * @param nuevoEstado The new status to set.
+   * @returns An observable that completes on success.
+   */
+  cambiarEstado(numeroRadicado: number, nuevoEstado: string): Observable<any> {
+    return this.http.put(`/api/tramites/${numeroRadicado}/estado`, { nuevoEstado });
+  }
+  /**
+   * Gets the tracking history for a tramite.
+   * @param numeroRadicado The ID of the tramite.
+   * @returns An observable with the tracking history.
+   */
+  getSeguimiento(numeroRadicado: number): Observable<Seguimiento[]> {
+    return this.http.get<Seguimiento[]>(`/api/tramites/${numeroRadicado}/seguimiento`);
+  }
 }

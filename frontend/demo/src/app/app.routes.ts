@@ -1,9 +1,7 @@
 import { Routes } from '@angular/router';
 import { Navigation } from './layout/navigation/navigation';
 import { authGuard, adminGuard } from './core/auth/guards/auth.guard';
-import {RadicarTramiteComponent} from './features/tramites/radicar-tramite.component';
-import {LoginComponent} from './features/auth/login.component';
-
+import {SeguimientoTramiteComponent} from './features/admin/tramites/seguimiento-tramite/seguimineto-tramite.component';
 export const routes: Routes = [
   {
     path: '',
@@ -22,6 +20,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/tramites/tramites-list.component')
             .then((m) => m.TramitesListComponent),
+      },
+      {
+        path: 'admin/tramites/:numeroRadicado/seguimiento',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/tramites/seguimiento-tramite/seguimineto-tramite.component')
+            .then((m) => m.SeguimientoTramiteComponent),
       },
       { path: '', redirectTo: 'tramites/radicar', pathMatch: 'full' },
     ],

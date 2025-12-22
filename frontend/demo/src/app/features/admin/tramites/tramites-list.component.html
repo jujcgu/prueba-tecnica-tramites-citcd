@@ -88,7 +88,7 @@
                     <ng-container matColumnDef="adjuntos">
                       <th mat-header-cell *matHeaderCellDef>Adjuntos</th>
                       <td mat-cell *matCellDef="let row">
-                        @if (row.adjuntos.length > 0) {
+                        @if (row.adjuntos && row.adjuntos.length > 0) {
                           <ul class="attachment-list">
                             @for (adjunto of row.adjuntos; track adjunto.nombreArchivo) {
                               <li>
@@ -105,9 +105,36 @@
                       </td>
                     </ng-container>
 
+                    <ng-container matColumnDef="seguimiento">
+                      <th mat-header-cell *matHeaderCellDef> Seguimiento </th>
+                      <td mat-cell *matCellDef="let row">
+                        <a mat-icon-button [routerLink]="['/admin/tramites', row.numeroRadicado, 'seguimiento']" matTooltip="Ver historial del trámite">
+                          <mat-icon>history</mat-icon>
+                        </a>
+                      </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="acciones">
+                      <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                      <td mat-cell *matCellDef="let row">
+                        @if (panel.name === 'EN_PROCESO' && row.funcionarioAsignado) {
+                          <button mat-icon-button [matMenuTriggerFor]="menu">
+                            <mat-icon>more_vert</mat-icon>
+                          </button>
+                          <mat-menu #menu="matMenu">
+                            @for(state of finalStates; track state) {
+                              <button mat-menu-item (click)="cambiarEstado(panel.name, row, state)">
+                                <span>{{ state | titlecase }}</span>
+                              </button>
+                            }
+                          </mat-menu>
+                        }
+                      </td>
+                    </ng-container>
+
                     <!-- Header and Row Declaration -->
-                    <tr mat-header-row *matHeaderRowDef="['numeroRadicado', 'TipoTramiteNombre', 'creadoEn', 'ultimoMovimiento', 'funcionarioAsignado', 'correoSolicitante', 'adjuntos']"></tr>
-                    <tr mat-row *matRowDef="let row; columns: ['numeroRadicado', 'TipoTramiteNombre', 'creadoEn', 'ultimoMovimiento', 'funcionarioAsignado', 'correoSolicitante', 'adjuntos'];"></tr>
+                    <tr mat-header-row *matHeaderRowDef="['numeroRadicado', 'TipoTramiteNombre', 'creadoEn', 'ultimoMovimiento', 'funcionarioAsignado', 'correoSolicitante', 'adjuntos', 'seguimiento', 'acciones']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['numeroRadicado', 'TipoTramiteNombre', 'creadoEn', 'ultimoMovimiento', 'funcionarioAsignado', 'correoSolicitante', 'adjuntos', 'seguimiento', 'acciones'];"></tr>
                   </table>
                 </div>
               }

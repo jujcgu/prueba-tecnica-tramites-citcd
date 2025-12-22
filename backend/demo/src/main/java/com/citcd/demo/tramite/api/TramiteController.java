@@ -68,16 +68,16 @@ public class TramiteController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/estado")
-    public ResponseEntity<Void> actualizarEstado(@PathVariable("id") Long id,
+    @PutMapping("/{numeroRadicado}/estado")
+    public ResponseEntity<Void> actualizarEstado(@PathVariable("numeroRadicado") Long id,
             @Valid @RequestBody CambiarEstadoRequest req) {
         tramiteWorkflowService.cambiarEstado(id, req);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/seguimiento")
-    public List<SeguimientoResponseDTO> seguimiento(@PathVariable("id") Long id) {
-        return seguimientoService.listarPorTramiteId(id);
+    @GetMapping("/{numeroRadicado}/seguimiento")
+    public List<SeguimientoResponseDTO> seguimiento(@PathVariable("numeroRadicado") Long numeroRadicado) {
+        return seguimientoService.listarPorTramiteId(numeroRadicado);
     }
 
     @GetMapping("/funcionario/{id}")

@@ -19,8 +19,8 @@ public interface SeguimientoRepository extends JpaRepository<Seguimiento, Long> 
 			        s.ultimoEstado as ultimoEstado,
 			        s.nuevoEstado as nuevoEstado
 			    from Seguimiento s
-			    where s.tramite.id = :tramiteId
+			    where s.tramite.numeroRadicado = :numeroRadicado
 			    order by s.creadoEn asc, s.id asc
 			""")
-	List<SeguimientoResponseProjection> findByTramiteId(@Param("tramiteId") Long tramiteId);
+	List<SeguimientoResponseProjection> findByTramiteNumeroRadicado(@Param("numeroRadicado") Long numeroRadicado);
 }

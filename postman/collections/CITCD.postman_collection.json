@@ -391,14 +391,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/16",
+              "raw": "{{host-port}}/api/tramites/14",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "16"
+                "14"
               ]
             }
           },
@@ -511,14 +511,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/16/estado",
+              "raw": "{{host-port}}/api/tramites/57/estado",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "16",
+                "57",
                 "estado"
               ]
             }
@@ -541,14 +541,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/16/seguimiento",
+              "raw": "{{host-port}}/api/tramites/11/seguimiento",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "16",
+                "11",
                 "seguimiento"
               ]
             }
@@ -591,6 +591,28 @@
                 "api",
                 "tramites",
                 "estados"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "id": "957ba008-e9e5-46c5-b8c1-ac8afa26bdc9",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tramites/estado/FINALIZADO/detalle",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "estado",
+                "FINALIZADO",
+                "detalle"
               ]
             }
           },

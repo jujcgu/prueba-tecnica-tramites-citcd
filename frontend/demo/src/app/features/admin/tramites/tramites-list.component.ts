@@ -14,8 +14,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import {MatSelectModule} from '@angular/material/select';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterModule } from '@angular/router';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 interface StatusPanel {
   name: string;
@@ -29,12 +33,16 @@ interface StatusPanel {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
+    MatTooltipModule,
     MatExpansionModule,
     MatTableModule,
     MatProgressSpinnerModule,
     MatIconModule,
     MatSelectModule,
     MatFormFieldModule,
+    MatMenuModule,
+    MatButtonModule,
   ],
   templateUrl: './tramites-list.component.html',
   styleUrls: ['./tramites-list.component.scss'],
@@ -43,11 +51,10 @@ interface StatusPanel {
 export class TramitesListComponent {
   private readonly tramitesAdminApi = inject(TramitesAdminService);
 
-  // --- State Signals ---
   readonly panels = signal<StatusPanel[]>([]);
   readonly expandedPanel = signal<string | null>(null);
+  readonly finalStates = ['FINALIZADO', 'RECHAZADO'];
 
-  // --- Data Signals from APIs ---
   private readonly initialPanels = toSignal(
     this.tramitesAdminApi.getEstados().pipe(
       map((statuses) =>
@@ -75,11 +82,11 @@ export class TramitesListComponent {
         const panelName = this.expandedPanel();
         if (!panelName) return;
         const panel = this.panels().find((p) => p.name === panelName);
-        if (panel && panel.tramites.length === 0 && !panel.isLoading && !panel.error) {
+        // Fetch only if the panel is empty and not already loading
+        if (panel && panel.tramites.length === 0 && !panel.isLoading) {
           this.fetchTramitesForPanel(panelName);
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
   }
 
@@ -89,12 +96,6 @@ export class TramitesListComponent {
     );
   }
 
-  /**
-   * Assigns a funcionario to a tramite and then refetches the data for the panel.
-   * @param panelName The name of the panel containing the tramite.
-   * @param tramite The tramite to be updated.
-   * @param funcionarioId The ID of the selected funcionario.
-   */
   asignarFuncionario(
     panelName: string,
     tramite: TramiteDetalle,
@@ -105,10 +106,19 @@ export class TramitesListComponent {
 
     this.tramitesAdminApi
       .asignarFuncionario(tramite.numeroRadicado, funcionarioId)
+      .subscribe(() => this.fetchTramitesForPanel(panelName));
+  }
+
+  cambiarEstado(
+    panelName: string,
+    tramite: TramiteDetalle,
+    nuevoEstado: string
+  ): void {
+    this.tramitesAdminApi
+      .cambiarEstado(tramite.numeroRadicado, nuevoEstado)
       .subscribe(() => {
-        // After successful assignment, refetch the entire panel's data
-        // to ensure the view is consistent with the backend.
         this.fetchTramitesForPanel(panelName);
+        this.fetchTramitesForPanel(nuevoEstado);
       });
   }
 
@@ -122,28 +132,26 @@ export class TramitesListComponent {
     this.tramitesAdminApi
       .getTramitesPorEstado(panelName)
       .pipe(
+        map((tramites) => {
+          this.panels.update((panels) =>
+            panels.map((p) =>
+              p.name === panelName
+                ? { ...p, tramites, isLoading: false }
+                : p
+            )
+          );
+        }),
         catchError(() => {
           this.panels.update((panels) =>
             panels.map((p) =>
               p.name === panelName
-                ? { ...p, error: 'Error al cargar los trámites. Intente de nuevo.' }
+                ? { ...p, error: 'Error al cargar los trámites.', isLoading: false }
                 : p
             )
           );
           return EMPTY;
-        }),
-        finalize(() => {
-          this.panels.update((panels) =>
-            panels.map((p) =>
-              p.name === panelName ? { ...p, isLoading: false } : p
-            )
-          );
         })
       )
-      .subscribe((tramites) => {
-        this.panels.update((panels) =>
-          panels.map((p) => (p.name === panelName ? { ...p, tramites } : p))
-        );
-      });
+      .subscribe();
   }
 }

@@ -22,11 +22,11 @@ public class SeguimientoService {
 	private final SeguimientoRepository seguimientoRepository;
 
 	@Transactional(readOnly = true)
-	public List<SeguimientoResponseDTO> listarPorTramiteId(Long tramiteId) {
-		if (tramiteId == null)
-			throw new IllegalArgumentException("tramiteId es requerido");
+	public List<SeguimientoResponseDTO> listarPorTramiteId(Long numeroRadicado) {
+		if (numeroRadicado == null)
+			throw new IllegalArgumentException("numeroRadicado es requerido");
 
-		var rows = seguimientoRepository.findByTramiteId(tramiteId);
+		var rows = seguimientoRepository.findByTramiteNumeroRadicado(numeroRadicado);
 
 		return rows.stream().map(p -> new SeguimientoResponseDTO(p.getCreadoEn(), p.getCreadoPorEmail(),
 				p.getTipoEvento(), p.getUltimoEstado(), p.getNuevoEstado())).toList();
