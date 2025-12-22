@@ -451,14 +451,14 @@
               }
             },
             "url": {
-              "raw": "{{host-port}}/api/tramites/16/asignar",
+              "raw": "{{host-port}}/api/tramites/56/asignar",
               "host": [
                 "{{host-port}}"
               ],
               "path": [
                 "api",
                 "tramites",
-                "16",
+                "56",
                 "asignar"
               ]
             }

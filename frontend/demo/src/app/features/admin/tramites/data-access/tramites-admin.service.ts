@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TramiteDetalle } from '../models/tramite-admin.model';
+import { Funcionario } from '../models/funcionario.model';
 
 @Injectable({
   providedIn: 'root',
@@ -27,4 +28,31 @@ export class TramitesAdminService {
       `/api/tramites/estado/${estado}/detalle`
     );
   }
+
+  /**
+   * Fetches the list of active funcionarios.
+   * @returns An observable with an array of funcionarios.
+   */
+  getFuncionarios(): Observable<Funcionario[]> {
+    return this.http.get<Funcionario[]>(
+      '/api/usuarios/funcionarios/activos/combo'
+    );
+  }
+
+  /**
+   * Assigns a tramite to a funcionario.
+   * @param numeroRadicado The ID of the tramite to assign.
+   * @param funcionarioId The ID of the funcionario.
+   * @returns An observable that completes on success.
+   */
+  asignarFuncionario(
+    numeroRadicado: number,
+    funcionarioId: number
+  ): Observable<void> {
+    return this.http.put<void>(
+      `/api/tramites/${numeroRadicado}/asignar`,
+      { funcionarioId }
+    );
+  }
+
 }

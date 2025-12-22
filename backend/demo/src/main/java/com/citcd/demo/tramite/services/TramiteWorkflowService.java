@@ -45,15 +45,15 @@ public class TramiteWorkflowService {
     }
 
     @Transactional
-    public void asignar(Long requestedId, AsignarTramiteRequest dto) {
+    public void asignar(Long numeroRadicado, AsignarTramiteRequest dto) {
 
         Usuario funcionario = usuarioRepository
                 .findByIdAndRolAndEsActivoTrue(dto.funcionarioId(), RolUsuario.ROLE_FUNCIONARIO)
                 .orElseThrow(
                         () -> new IllegalArgumentException("Funcionario no encontrado con id " + dto.funcionarioId()));
 
-        Tramite tramite = tramiteRepository.findById(requestedId)
-                .orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + requestedId));
+        Tramite tramite = tramiteRepository.findByNumeroRadicado(numeroRadicado)
+                .orElseThrow(() -> new EntityNotFoundException("Tramite no encontrado con id " + numeroRadicado));
 
         if (tramite.getEstado() == EstadoTramite.FINALIZADO || tramite.getEstado() == EstadoTramite.RECHAZADO) {
             throw new IllegalArgumentException(

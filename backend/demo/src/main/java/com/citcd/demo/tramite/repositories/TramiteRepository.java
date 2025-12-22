@@ -1,6 +1,7 @@
 package com.citcd.demo.tramite.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,5 +18,7 @@ public interface TramiteRepository extends JpaRepository<Tramite, Long> {
     List<TramiteAsignadoResponse> findByaAsignadoAId(@Param("id") Long id);
 
     List<Tramite> findByEstadoOrderByIdAsc(EstadoTramite estado);
+
+    Optional<Tramite> findByNumeroRadicado(Long numeroRadicado);
 
 }

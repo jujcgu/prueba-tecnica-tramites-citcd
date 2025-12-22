@@ -54,8 +54,9 @@ public class TramiteController {
         return tramiteQueryService.detalle(id);
     }
 
-    @PutMapping("/{id}/asignar")
-    public ResponseEntity<Void> asignar(@PathVariable("id") Long id, @Valid @RequestBody AsignarTramiteRequest req) {
+    @PutMapping("/{numeroRadicado}/asignar")
+    public ResponseEntity<Void> asignar(@PathVariable("numeroRadicado") Long id,
+            @Valid @RequestBody AsignarTramiteRequest req) {
         tramiteWorkflowService.asignar(id, req);
         return ResponseEntity.noContent().build();
     }
