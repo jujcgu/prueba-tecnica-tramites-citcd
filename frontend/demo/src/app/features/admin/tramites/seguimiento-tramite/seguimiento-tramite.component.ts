@@ -17,11 +17,29 @@ import {Seguimiento} from '../models/seguimiento.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SeguimientoTramiteComponent {
-  readonly numeroRadicado = input.required<number>();
   private readonly tramitesAdminApi = inject(TramitesAdminService);
-  private readonly seguimiento$ = toObservable(this.numeroRadicado).pipe(switchMap(radicado => this.tramitesAdminApi.getSeguimiento(radicado).pipe(catchError(() => of([] as Seguimiento[])) // Return typed empty array on error
-  )));
 
+  // Change input to a string to make router binding more reliable
+  readonly numeroRadicado = input.required<string>();
+
+  private readonly seguimiento$ = toObservable(this.numeroRadicado).pipe(
+    switchMap(radicadoStr => {
+      // Manually convert the string from the URL to a number
+      const radicadoNum = Number(radicadoStr);
+
+      // If the URL param isn't a valid number, return empty results
+      if (isNaN(radicadoNum)) {
+        return of([] as Seguimiento[]);
+      }
+
+      // Fetch data using the converted number
+      return this.tramitesAdminApi.getSeguimiento(radicadoNum).pipe(
+        catchError(() => of([] as Seguimiento[]))
+      );
+    })
+  );
+
+  // This signal now depends on the more robust logic above
   readonly seguimiento = toSignal(this.seguimiento$);
 
   protected getIconForEvent(tipoEvento: string): string {

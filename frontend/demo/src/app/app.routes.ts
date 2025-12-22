@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Navigation } from './layout/navigation/navigation';
 import { authGuard, adminGuard } from './core/auth/guards/auth.guard';
-import {SeguimientoTramiteComponent} from './features/admin/tramites/seguimiento-tramite/seguimineto-tramite.component';
+import {SeguimientoTramiteComponent} from './features/admin/tramites/seguimiento-tramite/seguimiento-tramite.component';
 export const routes: Routes = [
   {
     path: '',
@@ -25,7 +25,7 @@ export const routes: Routes = [
         path: 'admin/tramites/:numeroRadicado/seguimiento',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import('./features/admin/tramites/seguimiento-tramite/seguimineto-tramite.component')
+          import('./features/admin/tramites/seguimiento-tramite/seguimiento-tramite.component')
             .then((m) => m.SeguimientoTramiteComponent),
       },
       { path: '', redirectTo: 'tramites/radicar', pathMatch: 'full' },
