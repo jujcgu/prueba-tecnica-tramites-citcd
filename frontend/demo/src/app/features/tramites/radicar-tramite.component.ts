@@ -37,7 +37,7 @@ type DocGroup = FormGroup<{
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {class: 'radicar-page'},
 })
-export class RadicarTramitePageComponent {
+export class RadicarTramiteComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   readonly form = this.fb.group({
     tipoTramiteId: this.fb.control<number | null>(null, {
@@ -91,7 +91,7 @@ export class RadicarTramitePageComponent {
       } catch (e) {
         console.error('Failed to fetch document requirements:', e);
       }
-    }, {allowSignalWrites: true},);
+    },);
   }
 
   isUploading(tipoDocumentoId: number): boolean {

@@ -1,18 +1,21 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav
-    #drawer
-    class="sidenav"
-    fixedInViewport
-    [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-    [mode]="(isHandset$ | async) ? 'over' : 'side'"
-    [opened]="(isHandset$ | async) === false"
-  >
+  <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+               [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
     <mat-toolbar>Menu</mat-toolbar>
     <mat-nav-list>
       <a mat-list-item routerLink="/tramites/radicar">
-        Radicar tramite
         <mat-icon matListItemIcon>dynamic_form</mat-icon>
+        Radicar Trámite
       </a>
+
+      <!-- Conditionally show Admin link -->
+      @if (authState.isAdmin()) {
+        <a mat-list-item routerLink="/admin/tramites">
+          <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+          Admin Trámites
+        </a>
+      }
+
       <a mat-list-item href="#">Link 2</a>
       <a mat-list-item href="#">Link 3</a>
     </mat-nav-list>
@@ -20,20 +23,28 @@
   <mat-sidenav-content>
     <mat-toolbar color="primary">
       @if (isHandset$ | async) {
-      <button type="button" aria-label="Toggle sidenav" matIconButton (click)="drawer.toggle()">
-        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
-      </button>
+        <button type="button" aria-label="Toggle sidenav" matIconButton (click)="drawer.toggle()">
+          <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+        </button>
       }
       <h1 class="mat-h1">
         <strong>Gestión de Trámites</strong>
       </h1>
       <span class="spacer"></span>
-      <button matButton="outlined" routerLink="/login">
-        <mat-icon>login</mat-icon>
-        Login
-      </button>
+
+      <!-- Conditionally show Login/Logout button -->
+      @if (authState.isLoggedIn()) {
+        <button mat-button (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Logout
+        </button>
+      } @else {
+        <button mat-flat-button routerLink="/login">
+          <mat-icon>login</mat-icon>
+          Login
+        </button>
+      }
     </mat-toolbar>
     <router-outlet></router-outlet>
-    <!-- Add Content Here -->
   </mat-sidenav-content>
 </mat-sidenav-container>
