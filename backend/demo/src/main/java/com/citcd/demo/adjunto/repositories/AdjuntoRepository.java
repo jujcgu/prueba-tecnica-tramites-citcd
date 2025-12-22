@@ -12,4 +12,6 @@ public interface AdjuntoRepository extends JpaRepository<Adjunto, Long> {
 
     List<Adjunto> findByTramite_IdOrderByIdAsc(Long tramiteId);
 
+    List<Adjunto> findByTramite_IdInOrderByTramite_IdAscIdAsc(List<Long> tramiteIds);
+
 }

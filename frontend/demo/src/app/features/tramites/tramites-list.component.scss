@@ -1,0 +1,145 @@
+/**
+ * Styles for the Tramites List Admin Component.
+ * Adheres to Material Design 3 principles for a clean, theme-aware UI.
+ */
+
+:host {
+  display: block;
+  padding: 2rem;
+}
+
+.admin-tramites-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  font-size: 1.2rem;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: 2.5rem;
+  padding-left: 1rem;
+  border-left: 4px solid var(--md-sys-color-primary-container);
+}
+
+.tramites-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tramite-panel {
+  // Use a base surface color for the panels
+  background-color: var(--md-sys-color-surface-container);
+  transition: background-color 0.3s ease;
+
+  &.mat-expanded {
+    // Elevate the expanded panel to a higher surface
+    background-color: var(--md-sys-color-surface-container-high);
+  }
+
+  .mat-expansion-panel-header {
+    padding: 0 1.5rem;
+    height: 64px;
+  }
+
+  .panel-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .panel-description {
+    font-size: 1rem;
+    color: var(--md-sys-color-on-surface-variant);
+    justify-content: flex-end;
+  }
+}
+
+.panel-content {
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+// --- Content States ---
+.loading-indicator,
+.error-message,
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+.error-message {
+  color: var(--md-sys-color-error);
+}
+
+// --- Data Table ---
+.table-container {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.mat-table {
+  width: 100%;
+  background-color: transparent; // Table inherits background
+}
+
+.mat-header-cell {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--md-sys-color-on-surface);
+}
+
+.mat-cell {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+// --- Attachment List within the table ---
+.attachment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--md-sys-color-primary);
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    mat-icon {
+      font-size: 18px;
+    }
+  }
+}

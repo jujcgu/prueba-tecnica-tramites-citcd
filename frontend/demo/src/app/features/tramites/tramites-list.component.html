@@ -1,0 +1,107 @@
+<div class="admin-tramites-container">
+  <h1 class="page-title">Gestión de Trámites</h1>
+  <p class="page-subtitle">Consulta y gestiona los trámites agrupados por su estado actual.</p>
+
+  @if (panels().length > 0) {
+    <mat-accordion multi="false" class="tramites-accordion">
+      @for (panel of panels(); track panel.name) {
+        <mat-expansion-panel
+          (opened)="togglePanel(panel.name)"
+          [expanded]="expandedPanel() === panel.name"
+          class="tramite-panel"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title class="panel-title">
+              {{ panel.name | titlecase }}
+            </mat-panel-title>
+            <mat-panel-description class="panel-description">
+              @if (!panel.isLoading && !panel.error) {
+                <span>{{ panel.tramites.length }} Trámite(s)</span>
+              }
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <ng-template matExpansionPanelContent>
+            <div class="panel-content">
+              @if (panel.isLoading) {
+                <div class="loading-indicator">
+                  <mat-spinner diameter="40"></mat-spinner>
+                  <p>Cargando trámites...</p>
+                </div>
+              } @else if (panel.error) {
+                <div class="error-message">
+                  <mat-icon color="warn">error_outline</mat-icon>
+                  <p>{{ panel.error }}</p>
+                </div>
+              } @else if (panel.tramites.length === 0) {
+                <div class="no-results">
+                  <mat-icon>inbox</mat-icon>
+                  <p>No hay trámites en este estado.</p>
+                </div>
+              } @else {
+                <div class="table-container mat-elevation-z2">
+                  <table mat-table [dataSource]="panel.tramites">
+                    <!-- Columns Definition -->
+                    <ng-container matColumnDef="numeroRadicado">
+                      <th mat-header-cell *matHeaderCellDef># Radicado</th>
+                      <td mat-cell *matCellDef="let row">{{ row.numeroRadicado }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="TipoTramiteNombre">
+                      <th mat-header-cell *matHeaderCellDef>Tipo de Trámite</th>
+                      <td mat-cell *matCellDef="let row">{{ row.TipoTramiteNombre }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="creadoEn">
+                      <th mat-header-cell *matHeaderCellDef>Creado</th>
+                      <td mat-cell *matCellDef="let row">{{ row.creadoEn | date: 'short' }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ultimoMovimiento">
+                      <th mat-header-cell *matHeaderCellDef>Último Movimiento</th>
+                      <td mat-cell *matCellDef="let row">{{ row.ultimoMovimiento | date: 'short' }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="funcionarioAsignado">
+                      <th mat-header-cell *matHeaderCellDef>Funcionario</th>
+                      <td mat-cell *matCellDef="let row">{{ row.funcionarioAsignado || 'N/A' }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="correoSolicitante">
+                      <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+                      <td mat-cell *matCellDef="let row">{{ row.correoSolicitante }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="adjuntos">
+                      <th mat-header-cell *matHeaderCellDef>Adjuntos</th>
+                      <td mat-cell *matCellDef="let row">
+                        @if (row.adjuntos.length > 0) {
+                          <ul class="attachment-list">
+                            @for (adjunto of row.adjuntos; track adjunto.nombreArchivo) {
+                              <li>
+                                <a [href]="adjunto.urlDescarga" target="_blank" rel="noopener">
+                                  <mat-icon>attach_file</mat-icon>
+                                  <span>{{ adjunto.nombreArchivo }}</span>
+                                </a>
+                              </li>
+                            }
+                          </ul>
+                        } @else {
+                          <span>Ninguno</span>
+                        }
+                      </td>
+                    </ng-container>
+
+                    <!-- Header and Row Declaration -->
+                    <tr mat-header-row *matHeaderRowDef="['numeroRadicado', 'TipoTramiteNombre', 'creadoEn', 'ultimoMovimiento', 'funcionarioAsignado', 'correoSolicitante', 'adjuntos']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['numeroRadicado', 'TipoTramiteNombre', 'creadoEn', 'ultimoMovimiento', 'funcionarioAsignado', 'correoSolicitante', 'adjuntos'];"></tr>
+                  </table>
+                </div>
+              }
+            </div>
+          </ng-template>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+</div>

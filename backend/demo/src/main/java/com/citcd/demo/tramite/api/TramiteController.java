@@ -1,6 +1,7 @@
 package com.citcd.demo.tramite.api;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import com.citcd.demo.tramite.api.dto.CambiarEstadoRequest;
 import com.citcd.demo.tramite.api.dto.RadicarTramiteRequest;
 import com.citcd.demo.tramite.api.dto.TramiteAsignadoResponse;
 import com.citcd.demo.tramite.api.dto.TramiteDetalleResponse;
+import com.citcd.demo.tramite.models.enums.EstadoTramite;
 import com.citcd.demo.tramite.services.RadicacionTramiteService;
 import com.citcd.demo.tramite.services.TramiteQueryService;
 import com.citcd.demo.tramite.services.TramiteWorkflowService;
@@ -40,46 +42,59 @@ public class TramiteController {
 
     @PostMapping
     public ResponseEntity<Void> radicar(@Valid @RequestBody RadicarTramiteRequest request) {
-	long id = radicacionTramiteService.radicar(request).getId();
+        long id = radicacionTramiteService.radicar(request).getId();
 
-	URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
 
-	return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).build();
     }
 
     @GetMapping("/{id}")
     public TramiteDetalleResponse detalle(@PathVariable("id") Long id) {
-	return tramiteQueryService.detalle(id);
+        return tramiteQueryService.detalle(id);
     }
 
     @PutMapping("/{id}/asignar")
     public ResponseEntity<Void> asignar(@PathVariable("id") Long id, @Valid @RequestBody AsignarTramiteRequest req) {
-	tramiteWorkflowService.asignar(id, req);
-	return ResponseEntity.noContent().build();
+        tramiteWorkflowService.asignar(id, req);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/comentario")
     public ResponseEntity<Void> agregarComentario(@PathVariable("id") Long requestedId,
-	    @Valid @RequestBody AgregarComentario dto) {
-	tramiteWorkflowService.agregarComentarioTramite(requestedId, dto);
-	return ResponseEntity.noContent().build();
+            @Valid @RequestBody AgregarComentario dto) {
+        tramiteWorkflowService.agregarComentarioTramite(requestedId, dto);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/estado")
     public ResponseEntity<Void> actualizarEstado(@PathVariable("id") Long id,
-	    @Valid @RequestBody CambiarEstadoRequest req) {
-	tramiteWorkflowService.cambiarEstado(id, req);
-	return ResponseEntity.noContent().build();
+            @Valid @RequestBody CambiarEstadoRequest req) {
+        tramiteWorkflowService.cambiarEstado(id, req);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/seguimiento")
     public List<SeguimientoResponseDTO> seguimiento(@PathVariable("id") Long id) {
-	return seguimientoService.listarPorTramiteId(id);
+        return seguimientoService.listarPorTramiteId(id);
     }
 
     @GetMapping("/funcionario/{id}")
     public List<TramiteAsignadoResponse> listarPorFuncionario(@PathVariable("id") Long id) {
-	return tramiteQueryService.getByfuncionarioId(id);
+        return tramiteQueryService.getByfuncionarioId(id);
+    }
+
+    @GetMapping("/estado/{estado}/detalle")
+    public List<TramiteDetalleResponse> listarPorEstadoDetalle(
+            @PathVariable("estado") EstadoTramite estado) {
+        return tramiteQueryService.listarDetallePorEstado(estado);
+    }
+
+    @GetMapping("/estados")
+    public List<String> listarEstados() {
+        return Arrays.stream(EstadoTramite.values())
+                .map(Enum::name)
+                .toList();
     }
 
 }

@@ -405,6 +405,37 @@
           "response": []
         },
         {
+          "name": "listar detalles",
+          "id": "17e3c4c9-5bee-4d30-8afd-f0ea0e9cf905",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"tipoTramiteId\": 2,\r\n  \"comentario\": \"Solicito homologación de asignaturas del semestre anterior.\",\r\n  \"adjuntos\": [\r\n    {\r\n      \"tipoDocumentoId\": 2,\r\n      \"nombreArchivo\": \"cedula_maria_murillo.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/cedula_maria_murillo.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 4,\r\n      \"nombreArchivo\": \"formato_cancelacion.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/formato_cancelacion.pdf\"\r\n    },\r\n    {\r\n      \"tipoDocumentoId\": 8,\r\n      \"nombreArchivo\": \"soporte_medico.pdf\",\r\n      \"url\": \"https://storage.ejemplo.com/tramites/soporte_medico.pdf\"\r\n    }\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host-port}}/api/tramites/estado/FINALIZADO/detalle",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "estado",
+                "FINALIZADO",
+                "detalle"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "asignar funcionario",
           "id": "1f2cbe2e-e1b9-4c69-9dc8-cbcc904e3612",
           "request": {
@@ -540,6 +571,26 @@
                 "tramites",
                 "funcionario",
                 "4"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "listar estados",
+          "id": "d9c9ceee-ca78-42cc-8f2f-d4d300f88eb2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host-port}}/api/tramites/estados",
+              "host": [
+                "{{host-port}}"
+              ],
+              "path": [
+                "api",
+                "tramites",
+                "estados"
               ]
             }
           },
