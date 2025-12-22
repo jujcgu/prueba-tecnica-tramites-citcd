@@ -46,7 +46,7 @@ export class LoginComponent {
 
     try {
       await firstValueFrom(this.auth.login(this.form.getRawValue()));
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/tramites/radicar';
       await this.router.navigateByUrl(returnUrl);
     } catch (error) {
       console.error('Login failed', error);

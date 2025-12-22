@@ -1,0 +1,159 @@
+<mat-card class="card">
+  <!-- Submission Overlay -->
+  @if (submitting()) {
+    <div class="submission-overlay">
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="60"
+        aria-label="Radicando su solicitud"
+      ></mat-progress-spinner>
+      <p>Radicando...</p>
+    </div>
+  }
+
+  <h1 class="title">Radicar trámite</h1>
+  <p class="subtitle">Selecciona el tipo, adjunta los documentos requeridos y radica tu solicitud.</p>
+
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo de trámite</mat-label>
+      <mat-select formControlName="tipoTramiteId" required>
+        @for (t of tipos(); track t.id) {
+          <mat-option [value]="t.id">{{ t.nombre }}</mat-option>
+        }
+      </mat-select>
+
+      @if (tipoTramiteId.touched && tipoTramiteId.invalid) {
+        <mat-error>Selecciona un tipo de trámite</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Comentario</mat-label>
+      <textarea matInput rows="4" formControlName="comentario" required placeholder="Describe tu solicitud..."></textarea>
+
+      @if (comentario.touched && comentario.invalid) {
+        <mat-error>
+          @if (comentario.errors?.['required']) { El comentario es obligatorio. }
+          @else if (comentario.errors?.['minlength']) { Mínimo 10 caracteres. }
+        </mat-error>
+      }
+    </mat-form-field>
+
+    @if (docsVm().length > 0) {
+      <mat-divider></mat-divider>
+
+      <section class="docs-section" aria-label="Documentos requeridos">
+        <h2 class="section-title">Documentos Requeridos</h2>
+
+        <div class="docs-list" formArrayName="documentos">
+          @for (doc of docsVm(); track doc.tipoDocumentoId; let i = $index) {
+            <div class="doc-item" [formGroupName]="i">
+              <div class="doc-header">
+                <div class="doc-info">
+                  <span class="doc-title">{{ doc.nombre }}</span>
+                  <p class="doc-desc">{{ doc.descripcion }}</p>
+                </div>
+                @if (doc.esObligatorio) {
+                  <span class="badge badge-required">Obligatorio</span>
+                } @else {
+                  <span class="badge badge-optional">Opcional</span>
+                }
+              </div>
+
+              <div class="doc-meta">
+                <span>Máx. archivos: {{ doc.cantidadMaxima }}</span>
+                @if (doc.tamanoMaxMb != null) {
+                  <span>Máx. tamaño: {{ doc.tamanoMaxMb }} MB</span>
+                }
+              </div>
+
+              <input
+                #fileInput
+                type="file"
+                hidden
+                [accept]="doc.accept"
+                [multiple]="doc.cantidadMaxima > 1"
+                (change)="onFilesSelected(i, fileInput)"
+              />
+
+              <div class="doc-actions">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="isUploading(doc.tipoDocumentoId) || submitting()"
+                  (click)="fileInput.click()"
+                  [attr.aria-label]="'Adjuntar archivo para ' + doc.nombre"
+                >
+                  <mat-icon>attach_file</mat-icon>
+                  <span>Adjuntar Archivo</span>
+                </button>
+
+                @if (isUploading(doc.tipoDocumentoId)) {
+                  <div class="upload-indicator" aria-live="polite">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Subiendo...</span>
+                  </div>
+                }
+              </div>
+
+              @if (uploadError()[doc.tipoDocumentoId]; as error) {
+                <div class="inline-error" role="alert">{{ error }}</div>
+              }
+
+              @if (documentos.at(i).controls.archivos.value; as archivos) {
+                @if(archivos.length > 0) {
+                  <ul class="file-list" aria-label="Archivos cargados">
+                    @for (file of archivos; track file.identificadorAlmacenamiento) {
+                      <li class="file-item">
+                        <a [href]="file.urlDescarga" target="_blank" rel="noopener" class="file-link">
+                          <mat-icon>insert_drive_file</mat-icon>
+                          <span>{{ file.nombreArchivoOriginal }}</span>
+                        </a>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="removeArchivo(i, file.identificadorAlmacenamiento)"
+                          [disabled]="submitting()"
+                          aria-label="Quitar archivo"
+                          class="remove-btn"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              }
+
+              @if (documentos.at(i).controls.archivos; as fileControl) {
+                @if (fileControl.touched && fileControl.invalid) {
+                  <div class="inline-error" role="alert">
+                    @if (fileControl.errors?.['filesMin']) {
+                      Debes adjuntar al menos {{ doc.minEfectivo }} archivo(s).
+                    }
+                    @if (fileControl.errors?.['filesMax']) {
+                      No puedes adjuntar más de {{ doc.cantidadMaxima }} archivo(s).
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" [disabled]="submitting()" (click)="form.reset()">
+        Limpiar
+      </button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="!canSubmit()">
+        <span>Radicar Solicitud</span>
+        @if (submitting()) {
+          <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+        }
+      </button>
+    </div>
+  </form>
+</mat-card>
