@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS public.tramite
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
     CONSTRAINT estado_nombre_chk CHECK (estado::text = ANY (ARRAY['RADICADO'::character varying, 'EN_PROCESO'::character varying, 'FINALIZADO'::character varying, 'RECHAZADO'::character varying]::text[])),
-    CONSTRAINT tramite_finalizado_en_consistencia_chk CHECK ((estado::text = ANY (ARRAY['FINALIZADO'::character varying, 'RECHAZADO'::character varying]::text[])) AND finalizado_en IS NOT NULL OR (estado::text = ANY (ARRAY['RADICADO'::character varying, 'EN_PROCESO'::character varying]::text[])) AND finalizado_en IS NULL),
     CONSTRAINT tramite_comentario_not_blank_chk CHECK (btrim(COALESCE(comentario, ''::text)) <> ''::text)
 )
 
@@ -75,11 +74,11 @@ CREATE INDEX IF NOT EXISTS tramite_tipo_tramite_id_index
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
 
--- Trigger: set_updated_at_tramite
+-- Trigger: set_actualizado_en_timestamp_update
 
--- DROP TRIGGER IF EXISTS set_updated_at_tramite ON public.tramite;
+-- DROP TRIGGER IF EXISTS set_actualizado_en_timestamp_update ON public.tramite;
 
-CREATE OR REPLACE TRIGGER set_updated_at_tramite
+CREATE OR REPLACE TRIGGER set_actualizado_en_timestamp_update
     BEFORE UPDATE 
     ON public.tramite
     FOR EACH ROW
