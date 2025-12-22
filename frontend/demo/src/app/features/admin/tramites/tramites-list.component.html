@@ -64,7 +64,20 @@
 
                     <ng-container matColumnDef="funcionarioAsignado">
                       <th mat-header-cell *matHeaderCellDef>Funcionario</th>
-                      <td mat-cell *matCellDef="let row">{{ row.funcionarioAsignado || 'N/A' }}</td>
+                      <td mat-cell *matCellDef="let row">
+                        @if(row.funcionarioAsignado) {
+                          <span>{{ row.funcionarioAsignado }}</span>
+                        } @else {
+                          <mat-form-field appearance="outline" class="funcionario-select">
+                            <mat-label>Asignar a...</mat-label>
+                            <mat-select (selectionChange)="asignarFuncionario(panel.name, row, $event.value)">
+                              @for(funcionario of funcionarios(); track funcionario.id) {
+                                <mat-option [value]="funcionario.id">{{ funcionario.email }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        }
+                      </td>
                     </ng-container>
 
                     <ng-container matColumnDef="correoSolicitante">

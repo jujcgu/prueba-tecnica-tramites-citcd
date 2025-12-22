@@ -14,8 +14,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
+import {MatSelectModule} from '@angular/material/select';
+import {MatFormFieldModule} from '@angular/material/form-field';
 
-// ViewModel for each status panel
 interface StatusPanel {
   name: string;
   tramites: TramiteDetalle[];
@@ -32,6 +33,8 @@ interface StatusPanel {
     MatTableModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    MatSelectModule,
+    MatFormFieldModule,
   ],
   templateUrl: './tramites-list.component.html',
   styleUrls: ['./tramites-list.component.scss'],
@@ -45,79 +48,70 @@ export class TramitesListComponent {
   readonly expandedPanel = signal<string | null>(null);
 
   // --- Data Signals from APIs ---
-  // This signal gets the initial panel structure from the API.
   private readonly initialPanels = toSignal(
     this.tramitesAdminApi.getEstados().pipe(
       map((statuses) =>
         statuses.map(
           (s) =>
-            ({
-              name: s,
-              tramites: [],
-              isLoading: false,
-              error: null,
-            } as StatusPanel)
+            ({ name: s, tramites: [], isLoading: false, error: null } as StatusPanel)
         )
-      ),
-      catchError(() => {
-        return of([
-          {
-            name: 'Error',
-            tramites: [],
-            isLoading: false,
-            error: 'No se pudieron cargar los estados de los trámites.',
-          },
-        ] as StatusPanel[]);
-      })
+      )
     ),
     { initialValue: [] }
   );
 
-  constructor() {
-    // --- Reactive Effects ---
+  readonly funcionarios = toSignal(
+    this.tramitesAdminApi.getFuncionarios().pipe(catchError(() => of([]))),
+    { initialValue: [] }
+  );
 
-    // Effect 1: Initializes the panels signal when the API data arrives.
-    // This fixes the race condition.
+  constructor() {
     effect(() => {
-      const panels = this.initialPanels();
-      this.panels.set(panels);
+      this.panels.set(this.initialPanels());
     });
 
-    // Effect 2: Fetches data for a panel when it's expanded.
     effect(
       () => {
         const panelName = this.expandedPanel();
-        const allPanels = this.panels();
-
-        if (!panelName) return; // Exit if no panel is expanded
-
-        const panel = allPanels.find((p) => p.name === panelName);
-
-        // Fetch data only if the panel exists, is empty, and not already loading.
+        if (!panelName) return;
+        const panel = this.panels().find((p) => p.name === panelName);
         if (panel && panel.tramites.length === 0 && !panel.isLoading && !panel.error) {
           this.fetchTramitesForPanel(panelName);
         }
       },
-      { allowSignalWrites: true } // Needed because fetchTramitesForPanel updates a signal
+      { allowSignalWrites: true }
+    );
+  }
+
+  togglePanel(panelName: string): void {
+    this.expandedPanel.set(
+      this.expandedPanel() === panelName ? null : panelName
     );
   }
 
   /**
-   * Toggles a panel's expansion state.
-   * @param panelName The name of the panel to toggle.
+   * Assigns a funcionario to a tramite and then refetches the data for the panel.
+   * @param panelName The name of the panel containing the tramite.
+   * @param tramite The tramite to be updated.
+   * @param funcionarioId The ID of the selected funcionario.
    */
-  togglePanel(panelName: string): void {
-    if (this.expandedPanel() === panelName) {
-      this.expandedPanel.set(null); // Close if already open
-    } else {
-      this.expandedPanel.set(panelName); // Open and trigger effect
-    }
+  asignarFuncionario(
+    panelName: string,
+    tramite: TramiteDetalle,
+    funcionarioId: number
+  ): void {
+    const funcionario = this.funcionarios().find((f) => f.id === funcionarioId);
+    if (!funcionario) return;
+
+    this.tramitesAdminApi
+      .asignarFuncionario(tramite.numeroRadicado, funcionarioId)
+      .subscribe(() => {
+        // After successful assignment, refetch the entire panel's data
+        // to ensure the view is consistent with the backend.
+        this.fetchTramitesForPanel(panelName);
+      });
   }
 
-  /**
-   * Fetches and loads the tramites for a specific panel.
-   * @param panelName The name of the panel to fetch data for.
-   */
   private fetchTramitesForPanel(panelName: string): void {
     this.panels.update((panels) =>
       panels.map((p) =>
@@ -128,8 +122,7 @@ export class TramitesListComponent {
     this.tramitesAdminApi
       .getTramitesPorEstado(panelName)
       .pipe(
-        catchError((err) => {
-          console.error(err);
+        catchError(() => {
           this.panels.update((panels) =>
             panels.map((p) =>
               p.name === panelName
@@ -149,9 +142,7 @@ export class TramitesListComponent {
       )
       .subscribe((tramites) => {
         this.panels.update((panels) =>
-          panels.map((p) =>
-            p.name === panelName ? { ...p, tramites } : p
-          )
+          panels.map((p) => (p.name === panelName ? { ...p, tramites } : p))
         );
       });
   }
