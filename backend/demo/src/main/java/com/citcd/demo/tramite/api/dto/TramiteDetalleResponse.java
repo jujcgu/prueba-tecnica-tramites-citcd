@@ -6,24 +6,17 @@ import java.util.List;
 import com.citcd.demo.tramite.models.enums.EstadoTramite;
 
 public record TramiteDetalleResponse(
-                Long id,
                 Long numeroRadicado,
+                String correoSolicitante,
+                String TipoTramiteNombre,
                 EstadoTramite estado,
-                Long tipoTramiteId,
-                String tipoTramiteNombre,
-                String comentario,
                 OffsetDateTime creadoEn,
-                String radicadoPorEmail,
-                String asignadoAEmail,
+                OffsetDateTime ultimoMovimiento,
+                String funcionarioAsignado,
                 List<AdjuntoDetalle> adjuntos) {
         public record AdjuntoDetalle(
-                        Long id,
-                        Long tipoDocumentoId,
+                        String tipoDocumentoNombre,
                         String nombreArchivo,
-                        String identificadorAlmacenamiento,
-                        String tipoMime,
-                        long tamanoBytes,
-                        String sha256,
-                        String downloadUrl) {
+                        String urlDescarga) {
         }
 }

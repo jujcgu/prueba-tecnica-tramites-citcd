@@ -3,9 +3,9 @@
   @if (submitting()) {
     <div class="submission-overlay">
       <mat-progress-spinner
-        mode="indeterminate"
-        diameter="60"
         aria-label="Radicando su solicitud"
+        diameter="60"
+        mode="indeterminate"
       ></mat-progress-spinner>
       <p>Radicando...</p>
     </div>
@@ -14,7 +14,7 @@
   <h1 class="title">Radicar trámite</h1>
   <p class="subtitle">Selecciona el tipo, adjunta los documentos requeridos y radica tu solicitud.</p>
 
-  <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+  <form (ngSubmit)="submit()" [formGroup]="form" class="form">
     <mat-form-field appearance="outline">
       <mat-label>Tipo de trámite</mat-label>
       <mat-select formControlName="tipoTramiteId" required>
@@ -30,12 +30,16 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Comentario</mat-label>
-      <textarea matInput rows="4" formControlName="comentario" required placeholder="Describe tu solicitud..."></textarea>
+      <textarea formControlName="comentario" matInput placeholder="Describe tu solicitud..." required
+                rows="4"></textarea>
 
       @if (comentario.touched && comentario.invalid) {
         <mat-error>
-          @if (comentario.errors?.['required']) { El comentario es obligatorio. }
-          @else if (comentario.errors?.['minlength']) { Mínimo 10 caracteres. }
+          @if (comentario.errors?.['required']) {
+            El comentario es obligatorio.
+          } @else if (comentario.errors?.['minlength']) {
+            Mínimo 10 caracteres.
+          }
         </mat-error>
       }
     </mat-form-field>
@@ -43,12 +47,12 @@
     @if (docsVm().length > 0) {
       <mat-divider></mat-divider>
 
-      <section class="docs-section" aria-label="Documentos requeridos">
+      <section aria-label="Documentos requeridos" class="docs-section">
         <h2 class="section-title">Documentos Requeridos</h2>
 
         <div class="docs-list" formArrayName="documentos">
           @for (doc of docsVm(); track doc.tipoDocumentoId; let i = $index) {
-            <div class="doc-item" [formGroupName]="i">
+            <div [formGroupName]="i" class="doc-item">
               <div class="doc-header">
                 <div class="doc-info">
                   <span class="doc-title">{{ doc.nombre }}</span>
@@ -70,27 +74,28 @@
 
               <input
                 #fileInput
-                type="file"
-                hidden
+                (change)="onFilesSelected(i, fileInput)"
                 [accept]="doc.accept"
                 [multiple]="doc.cantidadMaxima > 1"
-                (change)="onFilesSelected(i, fileInput)"
+                hidden
+                type="file"
               />
 
               <div class="doc-actions">
                 <button
-                  mat-stroked-button
-                  type="button"
-                  [disabled]="isUploading(doc.tipoDocumentoId) || submitting()"
+                  matButton="elevated"
                   (click)="fileInput.click()"
                   [attr.aria-label]="'Adjuntar archivo para ' + doc.nombre"
+                  [disabled]="isUploading(doc.tipoDocumentoId) || submitting()"
+                  mat-stroked-button
+                  type="button"
                 >
                   <mat-icon>attach_file</mat-icon>
                   <span>Adjuntar Archivo</span>
                 </button>
 
                 @if (isUploading(doc.tipoDocumentoId)) {
-                  <div class="upload-indicator" aria-live="polite">
+                  <div aria-live="polite" class="upload-indicator">
                     <mat-spinner diameter="20"></mat-spinner>
                     <span>Subiendo...</span>
                   </div>
@@ -102,21 +107,21 @@
               }
 
               @if (documentos.at(i).controls.archivos.value; as archivos) {
-                @if(archivos.length > 0) {
-                  <ul class="file-list" aria-label="Archivos cargados">
+                @if (archivos.length > 0) {
+                  <ul aria-label="Archivos cargados" class="file-list">
                     @for (file of archivos; track file.identificadorAlmacenamiento) {
                       <li class="file-item">
-                        <a [href]="file.urlDescarga" target="_blank" rel="noopener" class="file-link">
+                        <a [href]="file.urlDescarga" class="file-link" rel="noopener" target="_blank">
                           <mat-icon>insert_drive_file</mat-icon>
                           <span>{{ file.nombreArchivoOriginal }}</span>
                         </a>
                         <button
-                          mat-icon-button
-                          type="button"
+                          matButton="elevated"
                           (click)="removeArchivo(i, file.identificadorAlmacenamiento)"
                           [disabled]="submitting()"
                           aria-label="Quitar archivo"
                           class="remove-btn"
+                          type="button"
                         >
                           <mat-icon>close</mat-icon>
                         </button>
@@ -145,13 +150,13 @@
     }
 
     <div class="form-actions">
-      <button mat-stroked-button type="button" [disabled]="submitting()" (click)="form.reset()">
+      <button matButton="elevated" (click)="form.reset()" [disabled]="submitting()" mat-stroked-button type="button">
         Limpiar
       </button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="!canSubmit()">
+      <button matButton="elevated" [disabled]="!canSubmit()" color="primary" mat-flat-button type="submit">
         <span>Radicar Solicitud</span>
         @if (submitting()) {
-          <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+          <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
         }
       </button>
     </div>

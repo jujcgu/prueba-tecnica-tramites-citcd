@@ -1,7 +1,11 @@
+/**
+ * A modern, theme-aware stylesheet using Material Design 3's color-based elevation.
+ * This version uses a slightly darker surface for the main card to increase its presence.
+ */
+
 :host {
   display: block;
   padding: 2rem;
-  background-color: #f0f2f5; // Light gray background for the page
 }
 
 .card {
@@ -9,9 +13,11 @@
   margin: 0 auto;
   padding: 2rem 2.5rem;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  // M3 Elevation Level 3: A darker surface for the main card for more emphasis.
+  background-color: var(--md-sys-color-surface-container-high);
   position: relative;
   overflow: hidden;
+  transition: background-color 0.3s ease;
 }
 
 // --- Submission Overlay ---
@@ -21,7 +27,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(var(--md-sys-color-surface-rgb), 0.9);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -32,7 +38,7 @@
   p {
     margin-top: 1rem;
     font-size: 1.1rem;
-    color: #333;
+    color: var(--md-sys-color-on-surface);
     font-weight: 500;
   }
 }
@@ -41,22 +47,22 @@
 .title {
   font-size: 2.25rem;
   font-weight: 700;
-  color: #1a237e; // Deep indigo
+  color: var(--md-sys-color-primary);
   margin: 0 0 0.5rem;
 }
 
 .subtitle {
   font-size: 1.1rem;
-  color: #5f6368;
+  color: var(--md-sys-color-on-surface-variant);
   margin-bottom: 2rem;
-  border-left: 3px solid #3f51b5; // Indigo accent
+  border-left: 3px solid var(--md-sys-color-primary);
   padding-left: 1rem;
 }
 
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #3f51b5;
+  color: var(--md-sys-color-primary);
   margin: 2rem 0 1.5rem;
 }
 
@@ -72,12 +78,6 @@
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 2rem;
-
-  button {
-    min-width: 120px;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-  }
 }
 
 // --- Documents Section ---
@@ -88,14 +88,16 @@
 }
 
 .doc-item {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  // M3 Elevation Level 4: The highest surface to sit above the darker card.
+  background-color: var(--md-sys-color-surface-container-highest);
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 10px;
   padding: 1.25rem;
-  transition: box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    // On hover, use the primary color for the border to indicate focus/interaction.
+    border-color: var(--md-sys-color-primary);
   }
 }
 
@@ -110,12 +112,12 @@
 .doc-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #212529;
+  color: var(--md-sys-color-on-surface);
 }
 
 .doc-desc {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--md-sys-color-on-surface-variant);
   margin-top: 0.25rem;
 }
 
@@ -126,16 +128,16 @@
   border-radius: 12px;
   text-transform: uppercase;
   white-space: nowrap;
+  border: 1px solid transparent;
 
   &-required {
-    background-color: #fdecea;
-    color: #c53030;
-    border: 1px solid #f9bdbb;
+    background-color: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
   }
+
   &-optional {
-    background-color: #e6f4ea;
-    color: #2f855a;
-    border: 1px solid #b2d8b5;
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -143,7 +145,7 @@
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--md-sys-color-on-surface-variant);
   margin-bottom: 1rem;
   padding-left: 0.2rem;
 }
@@ -152,10 +154,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-
-  button span {
-    margin-left: 0.5rem;
-  }
 }
 
 .upload-indicator {
@@ -163,16 +161,16 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #5f6368;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .inline-error {
-  color: #c53030;
+  color: var(--md-sys-color-error);
   font-size: 0.85rem;
   margin-top: 1rem;
   padding: 0.5rem 0.75rem;
-  background-color: #fdecea;
-  border: 1px solid #f9bdbb;
+  background-color: var(--md-sys-color-error-container);
+  border: 1px solid var(--md-sys-color-error);
   border-radius: 6px;
 }
 
@@ -190,14 +188,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: var(--md-sys-color-surface-container);
   padding: 0.5rem 0.75rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 6px;
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #f8f9fa;
+    background-color: var(--md-sys-color-surface-container-high);
   }
 }
 
@@ -206,12 +204,12 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: #3f51b5;
+  color: var(--md-sys-color-primary);
   font-weight: 500;
   font-size: 0.9rem;
 
   mat-icon {
-    color: #868e96;
+    color: var(--md-sys-color-on-surface-variant);
   }
 
   &:hover {
@@ -220,9 +218,10 @@
 }
 
 .remove-btn {
-  color: #868e96;
+  color: var(--md-sys-color-on-surface-variant);
+
   &:hover {
-    color: #c53030;
+    color: var(--md-sys-color-error);
   }
 }
 
@@ -251,9 +250,5 @@
 
   .form-actions {
     flex-direction: column;
-
-    button {
-      width: 100%;
-    }
   }
 }

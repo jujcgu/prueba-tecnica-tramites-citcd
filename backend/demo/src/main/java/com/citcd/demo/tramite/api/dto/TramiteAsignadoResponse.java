@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 
 import com.citcd.demo.tramite.models.enums.EstadoTramite;
 
-public record TramiteAsignadoResponse(Long numeroRadicado, String correoSolicitante, String nombreTipoTramite,
-	EstadoTramite estado, OffsetDateTime creadoEn, OffsetDateTime ultimoMovimiento) {
+public record TramiteAsignadoResponse(Long numeroRadicado, String correoSolicitante, String TipoTramiteNombre,
+		EstadoTramite estado, OffsetDateTime creadoEn, OffsetDateTime ultimoMovimiento) {
 
 }
